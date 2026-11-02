@@ -9,11 +9,13 @@ import sharp from 'sharp'
 
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
+import { Portraits } from './collections/Portraits'
 import { Posts } from './collections/Posts'
 import { PrivateGalleries } from './collections/PrivateGalleries'
 import { PrivateMedia } from './collections/PrivateMedia'
 import { Projects } from './collections/Projects'
 import { Users } from './collections/Users'
+import { About } from './globals/About'
 import { SiteSettings } from './globals/SiteSettings'
 import { env } from './lib/env'
 import { PRIVATE_PREFIX, PUBLIC_PREFIX } from './lib/s3'
@@ -51,8 +53,8 @@ export default buildConfig({
     },
     meta: { titleSuffix: ' — Admin' },
   },
-  collections: [Projects, Pages, Posts, PrivateGalleries, Media, PrivateMedia, Users],
-  globals: [SiteSettings],
+  collections: [Portraits, Projects, Posts, Pages, PrivateGalleries, Media, PrivateMedia, Users],
+  globals: [About, SiteSettings],
   editor: lexicalEditor(),
   secret: env.PAYLOAD_SECRET,
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') },

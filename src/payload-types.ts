@@ -67,9 +67,10 @@ export interface Config {
   };
   blocks: {};
   collections: {
+    portraits: Portrait;
     projects: Project;
-    pages: Page;
     posts: Post;
+    pages: Page;
     'private-galleries': PrivateGallery;
     media: Media;
     'private-media': PrivateMedia;
@@ -81,9 +82,10 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
+    portraits: PortraitsSelect<false> | PortraitsSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
-    pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
     'private-galleries': PrivateGalleriesSelect<false> | PrivateGalleriesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'private-media': PrivateMediaSelect<false> | PrivateMediaSelect<true>;
@@ -98,9 +100,11 @@ export interface Config {
   };
   fallbackLocale: null;
   globals: {
+    about: About;
     'site-settings': SiteSetting;
   };
   globalsSelect: {
+    about: AboutSelect<false> | AboutSelect<true>;
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
   };
   locale: null;
@@ -130,33 +134,43 @@ export interface UserAuthOperations {
   };
 }
 /**
+ * Add many at once from "Upload photos" (Destination: Photos, then "Create portraits"). Each portrait is saved as a draft: write its question and publish it.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "projects".
+ * via the `definition` "portraits".
  */
-export interface Project {
+export interface Portrait {
   id: number;
-  title: string;
+  image: number | Media;
   /**
-   * Generated from the title if left empty
+   * The question this portrait answers, e.g. "Chi vedi, quando ti guardi?"
+   */
+  question?: string | null;
+  /**
+   * One line on the moment of the shot: what happened after the question.
+   */
+  note?: string | null;
+  /**
+   * Shown under the note. Leave empty to show nothing.
+   */
+  subject?: string | null;
+  year?: number | null;
+  /**
+   * Leave empty for a single portrait ("Ritratti singoli").
+   */
+  series?: (number | null) | Project;
+  /**
+   * Generated automatically
    */
   slug: string;
   /**
-   * Lower = first
+   * Lower = first. Sets the N° shown on the site.
    */
   order?: number | null;
-  year?: number | null;
-  description?: string | null;
-  cover: number | Media;
   /**
-   * Drag rows to reorder. To add many photos at once use "Upload photos" in the menu and pick this project.
+   * The home floats about 13 portraits; tick the ones to use (it needs a question).
    */
-  photos?:
-    | {
-        image: number | Media;
-        caption?: string | null;
-        id?: string | null;
-      }[]
-    | null;
+  featured?: boolean | null;
   seo?: {
     /**
      * Max ~60 characters
@@ -232,33 +246,22 @@ export interface Media {
   };
 }
 /**
- * The page with slug "home" is the site home (/): its text is shown above the projects.
- *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "pages".
+ * via the `definition` "projects".
  */
-export interface Page {
+export interface Project {
   id: number;
   title: string;
   /**
    * Generated from the title if left empty
    */
   slug: string;
-  content?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
+  /**
+   * Lower = first
+   */
+  order?: number | null;
+  year?: number | null;
+  description?: string | null;
   seo?: {
     /**
      * Max ~60 characters
@@ -285,9 +288,119 @@ export interface Post {
    * Generated from the title if left empty
    */
   slug: string;
+  /**
+   * Pick the page design that fits what you are writing.
+   */
+  layout: 'campo' | 'fotoracconto' | 'domande' | 'dietro';
+  theme: 'vita-da-fotografo' | 'mostre' | 'dietro-il-ritratto';
   publishedAt?: string | null;
+  readTime?: number | null;
+  /**
+   * Shown in the Diary list.
+   */
   excerpt?: string | null;
+  /**
+   * Top of the page (layouts B and D), end of the page (A) and in the Diary list.
+   */
   cover?: (number | null) | Media;
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Shown large in handwriting, e.g. «Cosa non hai mai detto ad alta voce?»
+   */
+  pullQuote?: string | null;
+  intro?: string | null;
+  sections?:
+    | {
+        /**
+         * e.g. 05:12
+         */
+        time?: string | null;
+        photos?:
+          | {
+              image: number | Media;
+              caption?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        quote?: string | null;
+        note?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  qa?:
+    | {
+        question: string;
+        answer?: string | null;
+        quote?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Separate with " · ", e.g. 85 mm · f/2 · 1/160 s · ISO 400 · Luce: finestra a nord
+   */
+  exifLine?: string | null;
+  timeline?:
+    | {
+        /**
+         * e.g. 17:02 · La domanda
+         */
+        label: string;
+        highlight?: boolean | null;
+        quote?: string | null;
+        text?: string | null;
+        /**
+         * Optional: up to 4 frames shown side by side.
+         */
+        frames?: (number | Media)[] | null;
+        /**
+         * Position (1-4) of the frame to circle.
+         */
+        chosen?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  seo?: {
+    /**
+     * Max ~60 characters
+     */
+    title?: string | null;
+    /**
+     * Max ~160 characters
+     */
+    description?: string | null;
+    image?: (number | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * The page with slug "home" is the site home (/): its text is shown above the projects.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: number;
+  title: string;
+  /**
+   * Generated from the title if left empty
+   */
+  slug: string;
   content?: {
     root: {
       type: string;
@@ -442,16 +555,20 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
+        relationTo: 'portraits';
+        value: number | Portrait;
+      } | null)
+    | ({
         relationTo: 'projects';
         value: number | Project;
       } | null)
     | ({
-        relationTo: 'pages';
-        value: number | Page;
-      } | null)
-    | ({
         relationTo: 'posts';
         value: number | Post;
+      } | null)
+    | ({
+        relationTo: 'pages';
+        value: number | Page;
       } | null)
     | ({
         relationTo: 'private-galleries';
@@ -513,6 +630,31 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "portraits_select".
+ */
+export interface PortraitsSelect<T extends boolean = true> {
+  image?: T;
+  question?: T;
+  note?: T;
+  subject?: T;
+  year?: T;
+  series?: T;
+  slug?: T;
+  order?: T;
+  featured?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "projects_select".
  */
 export interface ProjectsSelect<T extends boolean = true> {
@@ -521,12 +663,66 @@ export interface ProjectsSelect<T extends boolean = true> {
   order?: T;
   year?: T;
   description?: T;
-  cover?: T;
-  photos?:
+  seo?:
     | T
     | {
+        title?: T;
+        description?: T;
         image?: T;
-        caption?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts_select".
+ */
+export interface PostsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  layout?: T;
+  theme?: T;
+  publishedAt?: T;
+  readTime?: T;
+  excerpt?: T;
+  cover?: T;
+  content?: T;
+  pullQuote?: T;
+  intro?: T;
+  sections?:
+    | T
+    | {
+        time?: T;
+        photos?:
+          | T
+          | {
+              image?: T;
+              caption?: T;
+              id?: T;
+            };
+        quote?: T;
+        note?: T;
+        id?: T;
+      };
+  qa?:
+    | T
+    | {
+        question?: T;
+        answer?: T;
+        quote?: T;
+        id?: T;
+      };
+  exifLine?: T;
+  timeline?:
+    | T
+    | {
+        label?: T;
+        highlight?: T;
+        quote?: T;
+        text?: T;
+        frames?: T;
+        chosen?: T;
         id?: T;
       };
   seo?:
@@ -547,28 +743,6 @@ export interface ProjectsSelect<T extends boolean = true> {
 export interface PagesSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
-  content?: T;
-  seo?:
-    | T
-    | {
-        title?: T;
-        description?: T;
-        image?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  _status?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "posts_select".
- */
-export interface PostsSelect<T extends boolean = true> {
-  title?: T;
-  slug?: T;
-  publishedAt?: T;
-  excerpt?: T;
-  cover?: T;
   content?: T;
   seo?:
     | T
@@ -766,6 +940,48 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "about".
+ */
+export interface About {
+  id: number;
+  kicker?: string | null;
+  /**
+   * Put *asterisks* around the word to show in italic.
+   */
+  headline: string;
+  portrait?: (number | null) | Media;
+  /**
+   * Paragraphs, or a line in handwriting. Shown in this order.
+   */
+  intro?:
+    | {
+        style?: ('paragraph' | 'quote') | null;
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  stepsTitle?: string | null;
+  steps?:
+    | {
+        title: string;
+        text?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  exhibitions?:
+    | {
+        title: string;
+        place?: string | null;
+        year?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  commissionNote?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings".
  */
 export interface SiteSetting {
@@ -779,6 +995,42 @@ export interface SiteSetting {
   ogImage?: (number | null) | Media;
   updatedAt?: string | null;
   createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "about_select".
+ */
+export interface AboutSelect<T extends boolean = true> {
+  kicker?: T;
+  headline?: T;
+  portrait?: T;
+  intro?:
+    | T
+    | {
+        style?: T;
+        text?: T;
+        id?: T;
+      };
+  stepsTitle?: T;
+  steps?:
+    | T
+    | {
+        title?: T;
+        text?: T;
+        id?: T;
+      };
+  exhibitions?:
+    | T
+    | {
+        title?: T;
+        place?: T;
+        year?: T;
+        id?: T;
+      };
+  commissionNote?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

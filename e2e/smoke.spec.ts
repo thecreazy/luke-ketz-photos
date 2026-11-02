@@ -14,7 +14,7 @@ const jpeg = (color: string) =>
     .jpeg()
     .toBuffer()
 
-// Payload only accepts cookie-authenticated writes from the site origin.
+// Payload only accepts cookie-authenticated requests that come from the site origin.
 const json = { headers: { origin: ORIGIN } }
 const created = async (res: Awaited<ReturnType<APIRequestContext['post']>>) => {
   expect(res.ok(), await res.text()).toBeTruthy()
@@ -22,7 +22,7 @@ const created = async (res: Awaited<ReturnType<APIRequestContext['post']>>) => {
 }
 
 test('the first visit to /admin creates the admin and logs in', async ({ page }) => {
-  await page.goto('/admin')
+  await page.goto('/admin', { waitUntil: 'networkidle' }) // the form must be hydrated before it is used
   await page.locator('input[name=username]').fill(USERNAME)
   await page.locator('input[name=password]').fill(PASSWORD)
   await page.locator('input[name=confirm-password]').fill(PASSWORD)
@@ -38,7 +38,7 @@ test('login rejects a wrong password and accepts the right one', async ({ page, 
   })
   expect(bad.status()).toBe(401)
 
-  await page.goto('/admin/login')
+  await page.goto('/admin/login', { waitUntil: 'networkidle' })
   await page.locator('input[name=username]').fill(USERNAME)
   await page.locator('input[name=password]').fill(PASSWORD)
   await page.getByRole('button', { name: 'Login' }).click()
@@ -47,75 +47,125 @@ test('login rejects a wrong password and accepts the right one', async ({ page, 
 
 test.describe('with a logged-in admin', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/admin/login')
+    await page.goto('/admin/login', { waitUntil: 'networkidle' })
     await page.locator('input[name=username]').fill(USERNAME)
     await page.locator('input[name=password]').fill(PASSWORD)
     await page.getByRole('button', { name: 'Login' }).click()
     await expect(page).toHaveURL(/\/admin(\/)?$/)
   })
 
-  test('uploading a photo creates it in the library with its variants', async ({
+  test('uploading photos creates draft portraits, hidden until published', async ({
     page,
     request,
   }) => {
-    await page.goto('/admin/upload-photos')
-    await page.locator('input[type=file]').setInputFiles({
-      name: 'e2e-photo.jpg',
-      mimeType: 'image/jpeg',
-      buffer: await jpeg('#c0392b'),
-    })
-    await expect(page.getByText('1/1 uploaded')).toBeVisible()
+    await page.goto('/admin/upload-photos', { waitUntil: 'networkidle' })
+    await page.locator('select').nth(1).selectOption('__single')
+    await page.locator('input[type=file]').setInputFiles([
+      { name: 'e2e-one.jpg', mimeType: 'image/jpeg', buffer: await jpeg('#c0392b') },
+      { name: 'e2e-two.jpg', mimeType: 'image/jpeg', buffer: await jpeg('#27ae60') },
+    ])
+    await expect(page.getByText('Created 2 draft portraits')).toBeVisible()
 
-    const list = await (await page.request.get('/api/media?limit=5')).json()
-    expect(list.totalDocs).toBe(1)
-    const photo = list.docs[0]
-    expect(photo.sizes.sm.url).toBeTruthy()
-    expect(photo.sizes.md.url).toBeTruthy()
-    // Public bucket: the variants load without any login.
-    expect((await request.get(photo.sizes.sm.url)).ok()).toBeTruthy()
+    const list = await (
+      await page.request.get('/api/portraits?draft=true&sort=order&limit=5', json)
+    ).json()
+    expect(list.totalDocs).toBe(2)
+    expect(list.docs.map((d: { _status: string }) => d._status)).toEqual(['draft', 'draft'])
+
+    // Nothing is public yet.
+    const home = await request.get('/ritratti')
+    expect(await home.text()).not.toContain('/ritratti/ritratto-')
+    const media = await (await page.request.get('/api/media?limit=5')).json()
+    expect(media.docs[0].sizes.sm.url).toBeTruthy()
+    expect((await request.get(media.docs[0].sizes.sm.url)).ok()).toBeTruthy()
   })
 
-  test('a published project shows up on the site, a draft does not', async ({ page, request }) => {
-    const media = (await (await page.request.get('/api/media?limit=1')).json()).docs[0]
-
-    const draft = await page.request.post('/api/projects?draft=true', {
-      ...json,
-      data: { title: 'E2E Hidden', cover: media.id, _status: 'draft' },
-    })
-    await created(draft)
+  test('a published portrait shows up on the site, a draft does not', async ({ page, request }) => {
+    const [first, second] = (
+      await (await page.request.get('/api/portraits?draft=true&sort=order&limit=5', json)).json()
+    ).docs
     await created(
-      await page.request.post('/api/projects', {
+      await page.request.patch(`/api/portraits/${first.id}`, {
         ...json,
         data: {
-          title: 'E2E Project',
-          cover: media.id,
-          photos: [{ image: media.id, caption: 'First' }],
+          question: 'Chi vedi, quando ti guardi?',
+          note: 'Una riga di prova',
+          featured: true,
           _status: 'published',
         },
       }),
     )
 
-    // Publishing must invalidate the cached home without a redeploy.
+    // Publishing must invalidate the cached pages without a redeploy.
+    await page.goto('/ritratti')
+    await expect(page.locator('.tile')).toHaveCount(1)
     await page.goto('/')
-    await expect(page.getByRole('link', { name: /E2E Project/ })).toBeVisible()
-    await expect(page.getByText('E2E Hidden')).toHaveCount(0)
-    await expect(page.locator('main img').first()).toBeVisible()
+    await expect(page.getByText('1 volti · 1 domande')).toBeVisible()
+    await expect(page.locator('a.card').first()).toBeVisible()
 
-    await page.goto('/projects/e2e-project')
-    await expect(page.getByRole('heading', { name: 'E2E Project' })).toBeVisible()
-    await expect(page.getByText('First')).toBeVisible()
+    await page.goto(`/ritratti/${first.slug}`)
+    await expect(page.getByRole('heading', { name: 'Chi vedi, quando ti guardi?' })).toBeVisible()
+    await expect(page.getByText('Una riga di prova')).toBeVisible()
 
-    const hidden = await request.get('/projects/e2e-hidden')
-    expect(await hidden.text()).toContain('Page not found')
+    const hidden = await request.get(`/ritratti/${second.slug}`)
+    expect(await hidden.text()).toContain('Pagina non trovata')
 
     const sitemap = await (await request.get('/sitemap.xml')).text()
-    expect(sitemap).toContain('/projects/e2e-project')
-    expect(sitemap).not.toContain('e2e-hidden')
+    expect(sitemap).toContain(`/ritratti/${first.slug}`)
+    expect(sitemap).not.toContain(second.slug)
+  })
+
+  test('an article uses the layout chosen for it', async ({ page }) => {
+    const media = (await (await page.request.get('/api/media?limit=1')).json()).docs[0]
+    await created(
+      await page.request.post('/api/posts', {
+        ...json,
+        data: {
+          title: 'Domande di prova',
+          layout: 'domande',
+          theme: 'mostre',
+          cover: media.id,
+          qa: [
+            { question: 'Perché i ritratti?', answer: 'Perché un volto cambia mentre lo guardi.' },
+          ],
+          _status: 'published',
+        },
+      }),
+    )
+    await created(
+      await page.request.post('/api/posts', {
+        ...json,
+        data: {
+          title: 'Una mano di prova',
+          layout: 'dietro',
+          theme: 'dietro-il-ritratto',
+          cover: media.id,
+          exifLine: '85 mm · f/2 · ISO 400',
+          timeline: [{ label: '17:02 · La domanda', highlight: true, text: 'Non ha risposto.' }],
+          _status: 'published',
+        },
+      }),
+    )
+
+    await page.goto('/diario')
+    await expect(page.locator('.fr')).toHaveCount(2)
+
+    await page.goto('/diario/domande-di-prova')
+    await expect(page.locator('ol.qa li')).toHaveCount(1)
+    await expect(page.getByText('Perché un volto cambia mentre lo guardi.')).toBeVisible()
+
+    await page.goto('/diario/una-mano-di-prova')
+    await expect(page.locator('ol.timeline li')).toHaveCount(1)
+    await expect(page.getByText('85 mm')).toBeVisible()
   })
 
   test('a photo that is still in use cannot be deleted', async ({ page }) => {
-    const media = (await (await page.request.get('/api/media?limit=1')).json()).docs[0]
-    const res = await page.request.delete(`/api/media/${media.id}`, json)
+    const [first] = (
+      await (
+        await page.request.get('/api/portraits?draft=true&sort=order&limit=5&depth=0', json)
+      ).json()
+    ).docs
+    const res = await page.request.delete(`/api/media/${first.image}`, json)
     expect(res.status()).toBe(409)
     expect(await res.text()).toContain('still in use')
   })
@@ -133,25 +183,25 @@ test.describe('with a logged-in admin', () => {
     const gallery = await created(
       await page.request.post('/api/private-galleries', {
         ...json,
-        data: { title: 'E2E Gallery', newPassword: 'open-sesame', photos: [photo.id] },
+        data: { title: 'Galleria di prova', newPassword: 'luce', photos: [photo.id] },
       }),
     )
 
     // A visitor, not an admin.
     const visitor = await (await browser.newContext({ baseURL: ORIGIN })).newPage()
     const open = async (password: string) => {
-      await visitor.goto('/galleries/e2e-gallery')
+      await visitor.goto('/galleries/galleria-di-prova')
       if (await visitor.locator('input[name=password]').count()) {
         await visitor.locator('input[name=password]').fill(password)
         await visitor.keyboard.press('Enter')
       }
     }
 
-    await open('wrong')
-    await expect(visitor.getByText('Wrong password')).toBeVisible()
+    await open('sbagliata')
+    await expect(visitor.getByText('Ancora sfocato. Riprova.')).toBeVisible()
     await expect(visitor.locator('main img')).toHaveCount(0)
 
-    await open('open-sesame')
+    await open('luce')
     await expect(visitor.locator('main img')).toHaveCount(1)
     await expect
       .poll(() => visitor.locator('main img').evaluate((i: HTMLImageElement) => i.naturalWidth))
@@ -169,7 +219,7 @@ test.describe('with a logged-in admin', () => {
       }),
     )
     await visitor.reload()
-    await expect(visitor.getByText('no longer available')).toBeVisible()
+    await expect(visitor.getByText('non è più disponibile')).toBeVisible()
     await expect(visitor.locator('main img')).toHaveCount(0)
 
     // Private galleries are never advertised.
@@ -177,6 +227,16 @@ test.describe('with a logged-in admin', () => {
     expect(sitemap).not.toContain('galleries')
     await visitor.context().close()
   })
+})
+
+test('the theme can be switched and is remembered', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' })
+  await page.goto('/ritratti')
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await page.getByRole('button', { name: 'Cambia tema' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+  await page.reload()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
 })
 
 test('security headers: CSP on the public site only', async ({ request }) => {

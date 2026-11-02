@@ -106,10 +106,13 @@ const prepare = async (file: File) => {
 
 type Parent = { id: number; title: string; draft?: boolean }
 
+// Public photos become portraits (optionally in a series); private ones go into a gallery.
 const PARENT = {
-  media: { collection: 'projects', label: 'project', drafts: true },
+  media: { collection: 'projects', label: 'series', drafts: true },
   'private-media': { collection: 'private-galleries', label: 'private gallery', drafts: false },
 } as const
+
+const SINGLE = '__single'
 
 const api = async (url: string, init?: RequestInit) => {
   const res = await fetch(url, { credentials: 'include', ...init })
@@ -152,17 +155,31 @@ export const PhotoUploader: React.FC = () => {
   const patch = (i: number, p: Partial<Item>) =>
     setItems((prev) => prev.map((it, idx) => (idx === i ? { ...it, ...p } : it)))
 
-  // Appends the uploaded photos, in selection order, to the chosen project / gallery.
-  // Projects are saved as a draft: the photographer reviews and publishes.
+  // Creates one draft portrait per photo, in selection order, after the existing ones.
+  const createPortraits = async (ids: number[]) => {
+    const last = await api('/api/portraits?limit=1&sort=-order&depth=0&draft=true')
+    const first = (last.docs[0]?.order ?? 0) + 1
+    for (const [i, image] of ids.entries()) {
+      await api('/api/portraits?draft=true', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          image,
+          order: first + i,
+          series: parentId === SINGLE ? undefined : Number(parentId),
+          _status: 'draft',
+        }),
+      })
+    }
+  }
+
+  // Appends the uploaded photos, in selection order, to the chosen gallery.
   const attach = async (ids: number[]) => {
+    if (target === 'media') return createPortraits(ids)
     const base = `/api/${config.collection}/${parentId}`
-    const draft = config.drafts ? '?draft=true' : ''
-    const current = await api(`${base}${draft ? `${draft}&depth=0` : '?depth=0'}`)
-    const photos =
-      target === 'media'
-        ? [...(current.photos ?? []), ...ids.map((image) => ({ image }))]
-        : [...(current.photos ?? []), ...ids]
-    await api(`${base}${draft}`, {
+    const current = await api(`${base}?depth=0`)
+    const photos = [...(current.photos ?? []), ...ids]
+    await api(base, {
       method: 'PATCH',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ photos }),
@@ -201,19 +218,27 @@ export const PhotoUploader: React.FC = () => {
     const uploaded = ids.filter((id): id is number => id !== undefined)
     if (parentId && uploaded.length > 0) {
       const parent = parents.find((p) => String(p.id) === parentId)
+      const n = `${uploaded.length} photo${uploaded.length === 1 ? '' : 's'}`
       try {
         await attach(uploaded)
-        setNote({
-          text: `Added ${uploaded.length} photo${uploaded.length === 1 ? '' : 's'} to "${parent?.title}"${
-            config.drafts ? ' as a draft: open it to review and publish.' : '.'
-          }`,
-          href: `/admin/collections/${config.collection}/${parentId}`,
-        })
+        setNote(
+          target === 'media'
+            ? {
+                text: `Created ${uploaded.length} draft portrait${uploaded.length === 1 ? '' : 's'}${
+                  parent ? ` in "${parent.title}"` : ''
+                }: write each question and publish.`,
+                href: '/admin/collections/portraits',
+              }
+            : {
+                text: `Added ${n} to "${parent?.title}".`,
+                href: `/admin/collections/${config.collection}/${parentId}`,
+              },
+        )
       } catch (e) {
         setNote({
-          text: `Photos uploaded, but adding them to the ${config.label} failed (${
-            e instanceof Error ? e.message : e
-          }). Add them from its page.`,
+          text: `Photos uploaded, but ${
+            target === 'media' ? 'creating the portraits' : `adding them to the ${config.label}`
+          } failed (${e instanceof Error ? e.message : e}). Add them from the admin.`,
           error: true,
         })
       }
@@ -237,14 +262,17 @@ export const PhotoUploader: React.FC = () => {
           }}
           disabled={busy}
         >
-          <option value="media">Photos (public portfolio)</option>
+          <option value="media">Photos (public portraits)</option>
           <option value="private-media">Private photos (password galleries)</option>
         </select>
       </label>
       <label>
-        Add to {config.label}{' '}
+        {target === 'media' ? 'Create portraits in' : `Add to ${config.label}`}{' '}
         <select value={parentId} onChange={(e) => setParentId(e.target.value)} disabled={busy}>
-          <option value="">Don&apos;t add to any (library only)</option>
+          <option value="">
+            {target === 'media' ? 'Nothing (library only)' : 'Don\u2019t add to any (library only)'}
+          </option>
+          {target === 'media' && <option value={SINGLE}>Single portraits (no series)</option>}
           {parents.map((p) => (
             <option key={p.id} value={p.id}>
               {p.title}

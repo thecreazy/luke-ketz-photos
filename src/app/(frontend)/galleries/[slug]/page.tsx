@@ -3,17 +3,21 @@ import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 
+import { getPortraits } from '@/lib/data'
 import { galleryToken, isExpired, tokenMatches } from '@/lib/password'
 import { payload } from '@/lib/payload'
 import type { PhotoSources } from '@/lib/photo'
 import { signedPhotoSources } from '@/lib/private-photo'
-
-import { UnlockForm } from './UnlockForm'
+import { Faces } from '@/site/Faces'
+import { GateRoom } from '@/site/GateRoom'
+import { it } from '@/site/it'
+import { SiteFooter } from '@/site/SiteFooter'
+import { SiteHeader } from '@/site/SiteHeader'
 
 type Props = { params: Promise<{ slug: string }> }
 
 export const metadata: Metadata = {
-  title: 'Private gallery',
+  title: it.gallery.private,
   robots: { index: false, follow: false },
 }
 
@@ -32,24 +36,31 @@ async function GalleryView({ params }: Props) {
     })
   ).docs[0]
   if (!gallery?.passwordHash) notFound()
+
+  const portraits = await getPortraits()
+  const faces = (
+    <Faces images={portraits.slice(0, 9).map((p) => p.doc.image)} slots="room" soften={0} />
+  )
+
   if (isExpired(gallery.expiresAt)) {
     return (
-      <section>
-        <h1>{gallery.title}</h1>
-        <p className="muted">
-          This gallery is no longer available. Please contact the photographer.
-        </p>
-      </section>
+      <div className="field glow room">
+        <div className="field-layer">{faces}</div>
+        <div className="room-veil" aria-hidden="true" />
+        <div className="gate">
+          <span className="mono muted">{gallery.title}</span>
+          <p className="serif question">{it.gallery.expired}</p>
+        </div>
+      </div>
     )
   }
 
   const token = (await cookies()).get(`gallery_${slug}`)?.value
   if (!token || !tokenMatches(token, galleryToken(slug, gallery.passwordHash))) {
     return (
-      <section>
-        <h1>{gallery.title}</h1>
-        <UnlockForm slug={slug} />
-      </section>
+      <GateRoom slug={slug} title={gallery.title}>
+        {faces}
+      </GateRoom>
     )
   }
 
@@ -60,30 +71,35 @@ async function GalleryView({ params }: Props) {
   ).filter((p): p is PhotoSources => p !== null)
 
   return (
-    <section>
-      <h1>{gallery.title}</h1>
-      {gallery.intro && <p className="muted">{gallery.intro}</p>}
-      <div className="stack">
-        {photos.map((p) => (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            key={p.src}
-            src={p.src}
-            srcSet={p.srcSet}
-            sizes="(min-width: 1200px) 1200px, 100vw"
-            width={p.width}
-            height={p.height}
-            alt={p.alt}
-            loading="lazy"
-            decoding="async"
-            style={{
-              backgroundImage: p.blurDataURL ? `url("${p.blurDataURL}")` : undefined,
-              backgroundSize: 'cover',
-            }}
-          />
-        ))}
-      </div>
-    </section>
+    <div className="page">
+      <SiteHeader />
+      <main className="wrap private-gallery">
+        <span className="mono accent">{it.gallery.open}</span>
+        <h1 className="serif big">{gallery.title}</h1>
+        {gallery.intro && <p className="serif hint">{gallery.intro}</p>}
+        <div className="stack">
+          {photos.map((p) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={p.src}
+              src={p.src}
+              srcSet={p.srcSet}
+              sizes="(min-width: 1200px) 1200px, 100vw"
+              width={p.width}
+              height={p.height}
+              alt={p.alt}
+              loading="lazy"
+              decoding="async"
+              style={{
+                backgroundImage: p.blurDataURL ? `url("${p.blurDataURL}")` : undefined,
+                backgroundSize: 'cover',
+              }}
+            />
+          ))}
+        </div>
+      </main>
+      <SiteFooter />
+    </div>
   )
 }
 

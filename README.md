@@ -1,5 +1,47 @@
 # thecreazy.template.photographers
 
+> **This repo is Luke Ketz's site.** It started from `thecreazy.template.photographers` and is detached from it.
+> Below: what is specific to Luke. The sections after it come from the template; where they mention
+> "projects" or the "blog", read **series** and **Diary** (the template's projects and posts were reshaped).
+
+## Luke Ketz: the site
+
+Site copy is Italian (`src/site/it.ts`), the admin is English. Design: dark and light themes (system preference,
+switch in the menu, remembered), fonts Nothing You Could Do / Martian Mono / Hedvig Letters Serif via `next/font`.
+All design code is in `src/site/`; the routes in `src/app/(frontend)` stay thin.
+
+| Page                   | Route                       | Content (admin)                                                                              |
+| ---------------------- | --------------------------- | -------------------------------------------------------------------------------------------- |
+| Home, "Campo di volti" | `/`                         | Portraits ticked **Show in the home field**; the question comes from Site settings → Tagline |
+| Portraits              | `/ritratti`                 | **Portraits**, filtered by **Series**                                                        |
+| A portrait             | `/ritratti/<slug>`          | question, a line from Luke, name/initials, series, year                                      |
+| Chi è                  | `/chi-e`                    | global **Chi è (About)**                                                                     |
+| Diary                  | `/diario`, `/diario/<slug>` | **Diary**: each article picks one of 4 layouts                                               |
+| Private galleries      | `/galleries/<slug>`         | **Private galleries** (password, expiry, access counter)                                     |
+| Legal pages            | `/<slug>`                   | **Pages** (Privacy, Cookies: drafts to review and publish)                                   |
+
+Adding portraits: admin → **Upload photos** → Destination "Photos (public portraits)" → "Create portraits in" a
+series or "Single portraits". It creates **draft** portraits in the order selected: write each question, tick the
+home field ones and publish. The "N°" on the site is the position by **Order**.
+
+Diary layouts (field **Layout** of the article): **A · Campo** (text, big quote, portrait), **B · Fotoracconto**
+(photos through the day), **C · Domande e risposte**, **D · Dietro lo scatto** (one photo, timeline, contact sheet).
+Only the fields of the chosen layout are shown.
+
+Events, tickets and bookings are **not built** (decided out for now). A contacts page will be added later; for now
+the email and Instagram of Site settings appear on Chi è and in the footer.
+
+### Local development
+
+`docker compose up -d`, then `pnpm dev`. `.env.local` (git-ignored) points to the local Postgres and MinIO and wins
+over `.env`, which holds the real services (Neon, Spaces, Upstash). Private test photos stay on the machine.
+
+### Before the first deploy
+
+The migrations were regenerated as a single `initial` one for this model. If the Neon database already ran the
+template's old migrations, empty it first (SQL editor: `DROP SCHEMA public CASCADE; CREATE SCHEMA public;`), or
+`payload migrate` will fail on tables that already exist.
+
 Template for photographer websites: public site + management portal in the **same Next.js project**,
 a single deploy on Vercel.
 

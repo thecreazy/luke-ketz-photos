@@ -8,7 +8,8 @@ import type {
 } from 'payload'
 
 // Tags used by the cached readers in src/lib/data.ts:
-//   settings · media · pages / page:<slug> · projects / project:<slug> · posts / post:<slug>
+//   settings · about · media · pages / page:<slug> · projects / project:<slug> · portraits /
+//   portrait:<slug> · posts / post:<slug>
 
 // `{ expire: 0 }`: stale content is never served, so the first visit after an edit gets fresh data.
 const invalidate = (tags: (string | null | undefined)[]) => {
@@ -60,9 +61,12 @@ export const revalidateMedia: Pick<
   ],
 }
 
-const settingsAfterChange: GlobalAfterChangeHook = ({ doc, req }) => {
-  if (!req.context.disableRevalidate) invalidate(['settings'])
-  return doc
+export const revalidateGlobal = (tag: string): GlobalConfig['hooks'] => {
+  const afterChange: GlobalAfterChangeHook = ({ doc, req }) => {
+    if (!req.context.disableRevalidate) invalidate([tag])
+    return doc
+  }
+  return { afterChange: [afterChange] }
 }
 
-export const revalidateSettings: GlobalConfig['hooks'] = { afterChange: [settingsAfterChange] }
+export const revalidateSettings = revalidateGlobal('settings')

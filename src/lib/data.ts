@@ -18,6 +18,13 @@ export async function getSettings() {
   return (await payload()).findGlobal({ slug: 'site-settings', depth: 1 })
 }
 
+export async function getAbout() {
+  cacheTag('about', 'media')
+  cacheLife('max')
+  return (await payload()).findGlobal({ slug: 'about', depth: 1 })
+}
+
+// Plain pages (privacy, cookies...): listed in the footer.
 export async function getNavPages() {
   cacheTag('pages')
   cacheLife('max')
@@ -63,42 +70,29 @@ export async function getPageSlugs() {
   return docs.map((d) => d.slug)
 }
 
-export async function getProjects() {
-  cacheTag('projects', 'media')
+// All published portraits in site order. Position in this list is the "N°" shown on the site.
+export async function getPortraits() {
+  cacheTag('portraits', 'projects', 'media')
   cacheLife('max')
   const { docs } = await (
     await payload()
   ).find({
-    collection: 'projects',
+    collection: 'portraits',
     depth: 1,
     pagination: false,
-    sort: 'order',
+    sort: ['order', 'createdAt'],
     where: published,
   })
-  return docs
+  return docs.map((doc, i) => ({ doc, n: i + 1 }))
 }
 
-export async function getProject(slug: string) {
-  cacheTag(`project:${slug}`, 'media')
+export async function getPortraitSlugs() {
+  cacheTag('portraits')
   cacheLife('max')
   const { docs } = await (
     await payload()
   ).find({
-    collection: 'projects',
-    depth: 2,
-    limit: 1,
-    where: { ...published, slug: { equals: slug } },
-  })
-  return docs[0] ?? null
-}
-
-export async function getProjectSlugs() {
-  cacheTag('projects')
-  cacheLife('max')
-  const { docs } = await (
-    await payload()
-  ).find({
-    collection: 'projects',
+    collection: 'portraits',
     depth: 0,
     pagination: false,
     select: { slug: true },
@@ -107,17 +101,41 @@ export async function getProjectSlugs() {
   return docs.map((d) => d.slug)
 }
 
+export async function getSeries() {
+  cacheTag('projects')
+  cacheLife('max')
+  const { docs } = await (
+    await payload()
+  ).find({
+    collection: 'projects',
+    depth: 0,
+    pagination: false,
+    sort: ['order', 'title'],
+    where: published,
+  })
+  return docs
+}
+
 export async function getPosts() {
-  cacheTag('posts')
+  cacheTag('posts', 'media')
   cacheLife('max')
   const { docs } = await (
     await payload()
   ).find({
     collection: 'posts',
-    depth: 0,
+    depth: 1,
     pagination: false,
     sort: '-publishedAt',
-    select: { title: true, slug: true, publishedAt: true },
+    select: {
+      title: true,
+      slug: true,
+      theme: true,
+      layout: true,
+      readTime: true,
+      publishedAt: true,
+      excerpt: true,
+      cover: true,
+    },
     where: published,
   })
   return docs
@@ -154,10 +172,10 @@ export async function getPostSlugs() {
 
 // Every public URL with its last edit, for the sitemap.
 export async function getSitemapEntries() {
-  cacheTag('pages', 'projects', 'posts')
+  cacheTag('pages', 'portraits', 'posts')
   cacheLife('max')
   const p = await payload()
-  const find = (collection: 'pages' | 'projects' | 'posts', extra = {}) =>
+  const find = (collection: 'pages' | 'portraits' | 'posts', extra = {}) =>
     p.find({
       collection,
       depth: 0,
@@ -165,10 +183,10 @@ export async function getSitemapEntries() {
       select: { slug: true, updatedAt: true },
       where: { ...published, ...extra },
     })
-  const [pages, projects, posts] = await Promise.all([
+  const [pages, portraits, posts] = await Promise.all([
     find('pages', { slug: { not_equals: 'home' } }),
-    find('projects'),
+    find('portraits'),
     find('posts'),
   ])
-  return { pages: pages.docs, projects: projects.docs, posts: posts.docs }
+  return { pages: pages.docs, portraits: portraits.docs, posts: posts.docs }
 }

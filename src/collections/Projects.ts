@@ -4,9 +4,11 @@ import { seoField } from '@/lib/seo'
 import { revalidateOnChange } from '@/lib/revalidate'
 import { slugField } from '@/lib/slug'
 
+// Here a "project" is a series of portraits (the filter on the Portraits page). The portraits
+// themselves are in the Portraits collection and point to their series.
 export const Projects: CollectionConfig = {
   slug: 'projects',
-  labels: { singular: 'Project', plural: 'Projects' },
+  labels: { singular: 'Series', plural: 'Series' },
   versions: { drafts: true, maxPerDoc: 20 },
   access: { read: ({ req }) => (req.user ? true : { _status: { equals: 'published' } }) },
   admin: { useAsTitle: 'title', defaultColumns: ['title', 'order', '_status'] },
@@ -23,22 +25,6 @@ export const Projects: CollectionConfig = {
     },
     { name: 'year', type: 'number', label: 'Year' },
     { name: 'description', type: 'textarea', label: 'Description' },
-    { name: 'cover', type: 'upload', relationTo: 'media', required: true, label: 'Cover' },
-    {
-      name: 'photos',
-      type: 'array',
-      label: 'Photos',
-      admin: {
-        initCollapsed: true,
-        description:
-          'Drag rows to reorder. To add many photos at once use "Upload photos" in the menu and pick this project.',
-        components: { RowLabel: '/components/admin/PhotoRowLabel#PhotoRowLabel' },
-      },
-      fields: [
-        { name: 'image', type: 'upload', relationTo: 'media', required: true },
-        { name: 'caption', type: 'text', label: 'Caption' },
-      ],
-    },
     seoField,
   ],
   hooks: revalidateOnChange('project', 'projects'),

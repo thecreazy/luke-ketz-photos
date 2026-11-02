@@ -3,6 +3,8 @@ import { notFound, redirect } from 'next/navigation'
 import { Suspense } from 'react'
 
 import { Rich } from '@/components/Rich'
+import { SiteFooter } from '@/site/SiteFooter'
+import { SiteHeader } from '@/site/SiteHeader'
 import { getPage, getPageSlugs } from '@/lib/data'
 import { seoMetadata } from '@/lib/metadata'
 import { staticSlugParams } from '@/lib/static-params'
@@ -25,10 +27,16 @@ async function PageView({ params }: Props) {
   if (!pg) notFound()
 
   return (
-    <article>
-      <h1>{pg.title}</h1>
-      <Rich data={pg.content} />
-    </article>
+    <div className="page">
+      <SiteHeader />
+      <main className="col">
+        <h1 className="serif big">{pg.title}</h1>
+        <div className="prose body">
+          <Rich data={pg.content} />
+        </div>
+      </main>
+      <SiteFooter />
+    </div>
   )
 }
 
