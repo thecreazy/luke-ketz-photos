@@ -107,6 +107,15 @@ test.describe('with a logged-in admin', () => {
     await expect(page.getByRole('heading', { name: 'Chi vedi, quando ti guardi?' })).toBeVisible()
     await expect(page.getByText('Una riga di prova')).toBeVisible()
 
+    // The header links must be clickable on a portrait page, and "back" returns to the grid.
+    await page.getByRole('link', { name: 'Luke Ketz' }).first().click()
+    await expect(page).toHaveURL(/\/$/)
+    await page.goto('/ritratti')
+    await page.locator('.tile').first().click()
+    await expect(page).toHaveURL(new RegExp(`/ritratti/${first.slug}$`))
+    await page.getByRole('link', { name: /Indietro/ }).click()
+    await expect(page).toHaveURL(/\/ritratti$/)
+
     const hidden = await request.get(`/ritratti/${second.slug}`)
     expect(await hidden.text()).toContain('Pagina non trovata')
 
@@ -227,16 +236,6 @@ test.describe('with a logged-in admin', () => {
     expect(sitemap).not.toContain('galleries')
     await visitor.context().close()
   })
-})
-
-test('the theme can be switched and is remembered', async ({ page }) => {
-  await page.emulateMedia({ colorScheme: 'dark' })
-  await page.goto('/ritratti')
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
-  await page.getByRole('button', { name: 'Cambia tema' }).click()
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
-  await page.reload()
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
 })
 
 test('security headers: CSP on the public site only', async ({ request }) => {

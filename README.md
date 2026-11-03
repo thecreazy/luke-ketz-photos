@@ -6,8 +6,7 @@
 
 ## Luke Ketz: the site
 
-Site copy is Italian (`src/site/it.ts`), the admin is English. Design: dark and light themes (system preference,
-switch in the menu, remembered), fonts Nothing You Could Do / Martian Mono / Hedvig Letters Serif via `next/font`.
+Site copy is Italian (`src/site/it.ts`), the admin is English. Design: dark only (no light theme, by decision), fonts Nothing You Could Do / Martian Mono / Hedvig Letters Serif via `next/font`.
 All design code is in `src/site/`; the routes in `src/app/(frontend)` stay thin.
 
 | Page                   | Route                       | Content (admin)                                                                              |

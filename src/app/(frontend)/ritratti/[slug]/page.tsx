@@ -10,6 +10,7 @@ import { seoMetadata } from '@/lib/metadata'
 import { it } from '@/site/it'
 import { Parallax } from '@/site/Parallax'
 import { SiteNav } from '@/site/SiteNav'
+import { BackLink } from '@/site/BackLink'
 import { Faces } from '@/site/Faces'
 
 type Props = { params: Promise<{ slug: string }> }
@@ -56,9 +57,7 @@ async function PortraitView({ params }: Props) {
         <Link href="/" className="serif logo">
           Luke Ketz
         </Link>
-        <Link href="/" className="mono back">
-          {it.portrait.back}
-        </Link>
+        <BackLink label={it.portrait.back} backLabel={it.portrait.backPrev} />
       </div>
 
       <main className="portrait-main">

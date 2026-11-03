@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import { Hedvig_Letters_Serif, Martian_Mono, Nothing_You_Could_Do } from 'next/font/google'
-import React from 'react'
+import React, { Suspense } from 'react'
 
 import { getSettings } from '@/lib/data'
 import { env } from '@/lib/env'
+import { NavTracker } from '@/site/BackLink'
 import '@/site/site.css'
 
 const script = Nothing_You_Could_Do({
@@ -41,21 +42,15 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-// Runs before the first paint: the saved choice, else the system preference. Without it the
-// page would flash dark before switching to light.
-const themeScript = `try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}document.documentElement.dataset.theme=t}catch(e){}`
-
 export default function FrontendLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="it"
-      className={`${script.variable} ${body.variable} ${mono.variable}`}
-      suppressHydrationWarning
-    >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-      </head>
-      <body>{children}</body>
+    <html lang="it" className={`${script.variable} ${body.variable} ${mono.variable}`}>
+      <body>
+        <Suspense fallback={null}>
+          <NavTracker />
+        </Suspense>
+        {children}
+      </body>
     </html>
   )
 }

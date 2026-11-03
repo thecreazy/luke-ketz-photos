@@ -1,7 +1,6 @@
 // Site copy (Italian). Kept in one place so the components hold no scattered strings.
 export const it = {
   nav: { about: 'Chi è', portraits: 'Ritratti', diary: 'Diario' },
-  theme: { toLight: 'Chiaro', toDark: 'Scuro', label: 'Cambia tema' },
   home: {
     kicker: 'Una domanda',
     hint: 'Muovi lo sguardo · scorri per entrare nel campo',
@@ -25,6 +24,7 @@ export const it = {
   },
   portrait: {
     back: '← Torna nel campo',
+    backPrev: '← Indietro',
     prev: '← Volto precedente',
     next: 'Volto successivo →',
     all: 'Tutti i ritratti',

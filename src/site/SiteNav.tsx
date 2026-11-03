@@ -1,7 +1,6 @@
 import Link from 'next/link'
 
 import { it } from './it'
-import { ThemeToggle } from './ThemeToggle'
 
 export function SiteNav({ current }: { current?: 'about' | 'portraits' | 'diary' }) {
   const link = (href: string, label: string, key: string) => (
@@ -14,7 +13,6 @@ export function SiteNav({ current }: { current?: 'about' | 'portraits' | 'diary'
       {link('/chi-e', it.nav.about, 'about')}
       {link('/ritratti', it.nav.portraits, 'portraits')}
       {link('/diario', it.nav.diary, 'diary')}
-      <ThemeToggle />
     </nav>
   )
 }

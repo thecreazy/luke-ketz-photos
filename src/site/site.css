@@ -1,4 +1,4 @@
-/* Luke Ketz — design tokens, dark by default, light via data-theme or the system preference. */
+/* Luke Ketz — design tokens. The site is dark only. */
 :root {
   --bg: #070606;
   --bg2: #161412;
@@ -15,39 +15,6 @@
   --pad: clamp(20px, 3.9vw, 56px);
   color-scheme: dark;
 }
-:root[data-theme='light'] {
-  --bg: #ede9e3;
-  --bg2: #f6f3ee;
-  --fg: #141210;
-  --body: #2a2622;
-  --sub: #3e3a35;
-  --muted: #6a645c;
-  --dim: #9a938a;
-  --line: #d3cdc3;
-  --line2: #c4bdb1;
-  --accent: #b4502f;
-  --veil: rgba(237, 233, 227, 0.85);
-  --surface: #e4dfd7;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme]) {
-    --bg: #ede9e3;
-    --bg2: #f6f3ee;
-    --fg: #141210;
-    --body: #2a2622;
-    --sub: #3e3a35;
-    --muted: #6a645c;
-    --dim: #9a938a;
-    --line: #d3cdc3;
-    --line2: #c4bdb1;
-    --accent: #b4502f;
-    --veil: rgba(237, 233, 227, 0.85);
-    --surface: #e4dfd7;
-    color-scheme: light;
-  }
-}
-
 * {
   box-sizing: border-box;
 }
@@ -654,7 +621,8 @@ button {
 }
 .portrait-main {
   position: relative;
-  z-index: 70;
+  /* Above the vignette (60), below the fixed header (70) whose links sit over its top padding. */
+  z-index: 65;
   flex: 1;
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
@@ -1432,13 +1400,6 @@ button {
   z-index: 60;
   pointer-events: none;
   background: radial-gradient(ellipse 60% 55% at 50% 50%, rgba(7, 6, 6, 0.55), rgba(7, 6, 6, 0.95));
-}
-:root[data-theme='light'] .room-veil {
-  background: radial-gradient(
-    ellipse 60% 55% at 50% 50%,
-    rgba(237, 233, 227, 0.55),
-    rgba(237, 233, 227, 0.95)
-  );
 }
 .gate,
 .gate-page {
