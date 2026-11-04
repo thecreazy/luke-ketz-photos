@@ -170,10 +170,10 @@ button {
   aspect-ratio: 1 / 1.28;
   z-index: var(--zi, 1);
   opacity: var(--o, 1);
-  filter: blur(calc(var(--b, 0) * 1px));
+  filter: blur(calc(var(--b, 0) * var(--bu, 1px)));
   transform: translate(
-      calc(var(--mx, 0) * -60px * (1 - var(--z, 0.5))),
-      calc(var(--my, 0) * -40px * (1 - var(--z, 0.5)))
+      calc(var(--mx, 0) * var(--ax, -60px) * (1 - var(--z, 0.5))),
+      calc(var(--my, 0) * var(--ay, -40px) * (1 - var(--z, 0.5)))
     )
     scale(var(--s, 1));
   transition:
@@ -375,58 +375,73 @@ button {
   font-size: 10px;
   color: var(--muted);
 }
+.home-left {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  font-size: 10px;
+}
+.legal a {
+  color: var(--muted);
+}
+.legal a:hover {
+  color: var(--accent);
+}
 
+/* Phone: the same field, laid out on a 390x700 frame. A tap focuses a face, a drag moves the field. */
 @media (max-width: 760px) {
+  .field {
+    --bu: 0.5px;
+  }
   .field.home {
-    height: auto;
+    touch-action: none;
     min-height: 0;
   }
-  .home-top,
-  .home-center,
-  .home-bottom {
-    position: static;
-    padding: 0 var(--pad);
+  .field.home .card,
+  .field-layer.fixed .card {
+    --ax: -34px;
+    --ay: -24px;
+  }
+  .field.home .card,
+  .card.deco {
+    left: calc(var(--xm) / 3.9 * 1%);
+    top: calc(var(--ym) / 7 * 1%);
+    width: calc(var(--wm) / 3.9 * 1vw);
   }
   .home-top {
-    padding-top: 28px;
+    top: 24px;
+  }
+  .top {
+    flex-wrap: wrap;
+    gap: 8px 20px;
+  }
+  .logo {
+    white-space: nowrap;
+    font-size: 30px;
+  }
+  .nav {
+    gap: 6px 22px;
   }
   .home-center {
-    transform: none;
-    width: auto;
-    margin: 56px 0 40px;
+    width: 86vw;
+  }
+  .question {
+    font-size: clamp(26px, 8.2vw, 36px);
   }
   .depth,
   .home-bottom .hint {
     display: none;
   }
   .home-bottom {
-    padding: 28px var(--pad) 32px;
-    justify-content: flex-start;
-  }
-  .field-layer {
-    position: static;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    padding: 0 var(--pad);
-    order: 2;
-  }
-  .field-layer .card {
-    position: static;
-    width: auto;
-    transform: none;
-    filter: none;
-    opacity: 1;
-  }
-  .field {
-    display: flex;
-    flex-direction: column;
-  }
-  .vignette {
-    display: none;
-  }
-  .home-bottom {
-    order: 3;
+    bottom: 22px;
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 14px;
   }
 }
 
@@ -1390,7 +1405,7 @@ button {
   --sharp: 0;
 }
 .room .card {
-  filter: blur(calc((26 - var(--sharp) * 8 + var(--z) * 6) * 1px)) grayscale(1);
+  filter: blur(calc((26 - var(--sharp) * 8 + var(--z) * 6) * var(--bu, 1px))) grayscale(1);
   opacity: calc(0.55 + var(--sharp) * 0.15);
   transform: scale(1.08);
 }

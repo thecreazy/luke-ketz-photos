@@ -42,6 +42,42 @@ const SLOTS: Record<string, Slot[]> = {
   ],
 }
 
+// The same faces on a 390x844 phone frame: x, y and width (depth stays the same).
+const PHONE: Record<string, [x: number, y: number, w: number][]> = {
+  detail: [
+    [-40, 66, 170],
+    [250, 33, 150],
+    [260, 465, 140],
+    [140, 581, 90],
+    [170, 199, 70],
+    [330, 274, 60],
+    [-10, 498, 130],
+    [40, 315, 56],
+    [320, 100, 50],
+  ],
+  margin: [
+    [8, 100, 60],
+    [300, 83, 56],
+    [316, 299, 60],
+    [330, 531, 50],
+    [160, 631, 70],
+    [-20, 465, 120],
+    [20, 249, 50],
+    [300, 647, 50],
+  ],
+  room: [
+    [-20, 58, 180],
+    [170, 42, 170],
+    [210, 249, 170],
+    [-30, 274, 160],
+    [20, 465, 190],
+    [180, 432, 200],
+    [110, 249, 150],
+    [250, 581, 110],
+    [60, 598, 100],
+  ],
+}
+
 type Props = {
   images: (Media | number | null | undefined)[]
   slots: keyof typeof SLOTS
@@ -66,6 +102,9 @@ export function Faces({ images, slots, soften = 8 }: Props) {
             '--x': x,
             '--y': y,
             '--w': w,
+            '--xm': PHONE[slots][i][0],
+            '--ym': PHONE[slots][i][1],
+            '--wm': PHONE[slots][i][2],
             '--z': z,
             '--zi': Math.round((1 - z) * 20),
             '--b': (soften + z * 14).toFixed(1),

@@ -238,6 +238,28 @@ test.describe('with a logged-in admin', () => {
   })
 })
 
+test('on a phone the home is the same field: a tap focuses a face, a second tap opens it', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    baseURL: ORIGIN,
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true,
+  })
+  const page = await context.newPage()
+  await page.goto('/')
+  const card = page.locator('a.card').first()
+  await card.tap()
+  await expect(page.locator('h1.question')).toHaveText('Chi vedi, quando ti guardi?')
+  await expect(page).toHaveURL(`${ORIGIN}/`)
+  await card.tap()
+  await expect(page).toHaveURL(/\/ritratti\/ritratto-/)
+  // Nothing may scroll sideways.
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await context.close()
+})
+
 test('security headers: CSP on the public site only', async ({ request }) => {
   const site = await request.get('/')
   expect(site.headers()['content-security-policy']).toContain("frame-ancestors 'none'")

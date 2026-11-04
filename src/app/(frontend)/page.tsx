@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 import { JsonLd } from '@/components/JsonLd'
-import { getAbout, getPortraits, getSettings } from '@/lib/data'
+import { getAbout, getNavPages, getPortraits, getSettings } from '@/lib/data'
 import { env } from '@/lib/env'
 import { photoSources } from '@/lib/photo'
 import { HomeField } from '@/site/HomeField'
@@ -27,8 +27,30 @@ const SLOTS: [number, number, number, number][] = [
   [1140, 300, 80, 0.95],
 ]
 
+// Same faces and depths on a phone-shaped frame (390x700, what Safari leaves visible): x, y and width. Index i matches SLOTS[i].
+const MOBILE_SLOTS: [number, number, number][] = [
+  [14, 92, 110],
+  [268, 110, 80],
+  [236, 450, 120],
+  [170, 250, 60],
+  [24, 450, 130],
+  [8, 270, 70],
+  [306, 330, 70],
+  [190, 230, 44],
+  [332, 250, 40],
+  [110, 380, 36],
+  [16, 372, 42],
+  [210, 400, 36],
+  [166, 600, 50],
+]
+
 export default async function Home() {
-  const [portraits, s, about] = await Promise.all([getPortraits(), getSettings(), getAbout()])
+  const [portraits, s, about, legal] = await Promise.all([
+    getPortraits(),
+    getSettings(),
+    getAbout(),
+    getNavPages(),
+  ])
 
   const withQuestion = portraits.filter((p) => p.doc.question)
   const featured = withQuestion.filter((p) => p.doc.featured)
@@ -55,6 +77,9 @@ export default async function Home() {
         y,
         w,
         z,
+        xm: MOBILE_SLOTS[i][0],
+        ym: MOBILE_SLOTS[i][1],
+        wm: MOBILE_SLOTS[i][2],
       })
     })
   }
@@ -81,6 +106,7 @@ export default async function Home() {
         defaultQuestion={s.tagline || it.home.fallbackQuestion}
         faces={portraits.length}
         questions={withQuestion.length}
+        legal={legal}
       />
     </>
   )

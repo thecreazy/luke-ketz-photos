@@ -4,7 +4,8 @@ import { useEffect, useRef } from 'react'
 
 /**
  * Sets --mx / --my (-1..1) on the element while the pointer moves over it, so faces drift at
- * different speeds (see .card in site.css). Skipped for reduced motion and touch screens.
+ * different speeds (see .card in site.css). Skipped for reduced motion; on touch screens the
+ * field follows the finger while it is dragged.
  */
 export function useParallax<T extends HTMLElement = HTMLDivElement>() {
   const ref = useRef<T>(null)
@@ -13,8 +14,7 @@ export function useParallax<T extends HTMLElement = HTMLDivElement>() {
     const el = ref.current
     if (!el) return
     const calm = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const hover = window.matchMedia('(hover: hover)')
-    if (calm.matches || !hover.matches) return
+    if (calm.matches) return
 
     let raf = 0
     let x = 0

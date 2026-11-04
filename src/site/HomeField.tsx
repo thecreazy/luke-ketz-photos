@@ -21,6 +21,10 @@ export type FieldCard = {
   y: number
   w: number
   z: number
+  // Same slot on the 390x844 phone frame.
+  xm: number
+  ym: number
+  wm: number
 }
 
 type Props = {
@@ -29,9 +33,10 @@ type Props = {
   defaultQuestion: string
   faces: number
   questions: number
+  legal: { id: number; slug: string; title: string }[]
 }
 
-export function HomeField({ cards, siteName, defaultQuestion, faces, questions }: Props) {
+export function HomeField({ cards, siteName, defaultQuestion, faces, questions, legal }: Props) {
   const [active, setActive] = useState<number | null>(null)
   const ref = useParallax<HTMLDivElement>()
   const cur = active === null ? null : cards[active]
@@ -42,6 +47,10 @@ export function HomeField({ cards, siteName, defaultQuestion, faces, questions }
       className="field glow home"
       data-hover={cur ? '' : undefined}
       onMouseLeave={() => setActive(null)}
+      onClick={(e) => {
+        // Touch: a tap on the empty field lets go of the focused face.
+        if (!(e.target as HTMLElement).closest('a')) setActive(null)
+      }}
     >
       <div className="field-layer">
         {cards.map((c, i) => {
@@ -54,12 +63,26 @@ export function HomeField({ cards, siteName, defaultQuestion, faces, questions }
               className="card"
               data-on={on ? '' : undefined}
               onMouseEnter={() => setActive(i)}
-              onFocus={() => setActive(i)}
+              onFocus={(e) => {
+                // Keyboard only: on touch the focus that comes with a tap must not count as the first tap.
+                if (e.currentTarget.matches(':focus-visible')) setActive(i)
+              }}
+              onClick={(e) => {
+                // No hover on touch screens: the first tap brings the face into focus and shows
+                // its question, the second one opens it.
+                if (!window.matchMedia('(hover: hover)').matches && active !== i) {
+                  e.preventDefault()
+                  setActive(i)
+                }
+              }}
               style={
                 {
                   '--x': c.x,
                   '--y': c.y,
                   '--w': c.w,
+                  '--xm': c.xm,
+                  '--ym': c.ym,
+                  '--wm': c.wm,
                   '--z': c.z,
                   '--zi': Math.round((1 - c.z) * 20),
                   '--b': b.toFixed(1),
@@ -122,7 +145,18 @@ export function HomeField({ cards, siteName, defaultQuestion, faces, questions }
       </div>
 
       <div className="home-bottom">
-        <span className="hint mono">{it.home.hint}</span>
+        <div className="home-left">
+          <span className="hint mono">{it.home.hint}</span>
+          {legal.length > 0 && (
+            <nav className="legal mono" aria-label="Informazioni">
+              {legal.map((l) => (
+                <Link key={l.id} href={`/${l.slug}`}>
+                  {l.title}
+                </Link>
+              ))}
+            </nav>
+          )}
+        </div>
         <SiteNav />
       </div>
     </div>
