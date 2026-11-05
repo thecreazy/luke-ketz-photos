@@ -6,7 +6,7 @@ import { Suspense } from 'react'
 import { getCopy, getPortraits, getPortraitSlugs, getSettings } from '@/lib/data'
 import { photoSources } from '@/lib/photo'
 import { staticSlugParams } from '@/lib/static-params'
-import { seoMetadata } from '@/lib/metadata'
+import { defaultOgImage, seoMetadata } from '@/lib/metadata'
 import { fmt } from '@/site/copy'
 import { Parallax } from '@/site/Parallax'
 import { SiteMenu } from '@/site/SiteMenu'
@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { doc, n } = found
   const title =
     doc.question || fmt((await getCopy()).portraits.alt, { n: String(n).padStart(2, '0') })
-  return seoMetadata(title, doc.seo, doc.note, `/ritratti/${doc.slug}`)
+  return seoMetadata(title, doc.seo, doc.note, `/ritratti/${doc.slug}`, await defaultOgImage())
 }
 
 async function PortraitView({ params }: Props) {

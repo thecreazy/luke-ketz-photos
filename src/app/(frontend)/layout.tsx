@@ -4,6 +4,7 @@ import React, { Suspense } from 'react'
 
 import { getSettings } from '@/lib/data'
 import { env } from '@/lib/env'
+import { defaultOgImage } from '@/lib/metadata'
 import { NavTracker } from '@/site/BackLink'
 import '@/site/site.css'
 
@@ -28,7 +29,7 @@ const mono = Martian_Mono({
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getSettings()
-  const ogImage = typeof s.ogImage === 'object' && s.ogImage ? s.ogImage.url : undefined
+  const ogImage = await defaultOgImage()
   return {
     metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
     title: { default: s.siteName, template: `%s — ${s.siteName}` },
@@ -37,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: s.siteName,
       type: 'website',
       locale: 'it_IT',
-      images: ogImage ? [ogImage] : undefined,
+      images: [ogImage],
     },
   }
 }

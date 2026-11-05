@@ -6,7 +6,7 @@ import { Rich } from '@/components/Rich'
 import { SiteFooter } from '@/site/SiteFooter'
 import { SiteHeader } from '@/site/SiteHeader'
 import { getPage, getPageSlugs } from '@/lib/data'
-import { seoMetadata } from '@/lib/metadata'
+import { defaultOgImage, seoMetadata } from '@/lib/metadata'
 import { staticSlugParams } from '@/lib/static-params'
 
 type Props = { params: Promise<{ slug: string }> }
@@ -17,7 +17,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const pg = await getPage((await params).slug)
-  return pg ? seoMetadata(pg.title, pg.seo, undefined, `/${pg.slug}`) : {}
+  return pg ? seoMetadata(pg.title, pg.seo, undefined, `/${pg.slug}`, await defaultOgImage()) : {}
 }
 
 async function PageView({ params }: Props) {

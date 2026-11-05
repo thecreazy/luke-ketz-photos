@@ -5,7 +5,7 @@ import { Suspense } from 'react'
 import { JsonLd } from '@/components/JsonLd'
 import { getPortraits, getPost, getPosts, getPostSlugs, getSettings } from '@/lib/data'
 import { env } from '@/lib/env'
-import { seoMetadata } from '@/lib/metadata'
+import { defaultOgImage, seoMetadata } from '@/lib/metadata'
 import { staticSlugParams } from '@/lib/static-params'
 import { ArticleCampo, ArticleDietro, ArticleDomande, ArticleFotoracconto } from '@/site/articles'
 
@@ -17,7 +17,15 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = await getPost((await params).slug)
-  return p ? seoMetadata(p.title, p.seo, p.excerpt, `/diario/${p.slug}`) : {}
+  if (!p) return {}
+  const cover = typeof p.cover === 'object' && p.cover ? p.cover.url : undefined
+  return seoMetadata(
+    p.title,
+    p.seo,
+    p.excerpt,
+    `/diario/${p.slug}`,
+    cover ?? (await defaultOgImage()),
+  )
 }
 
 async function ArticleView({ params }: Props) {

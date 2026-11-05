@@ -319,6 +319,24 @@ test('on a phone the home is the same field: a tap focuses a face, a second tap 
   await context.close()
 })
 
+test('shared links get a preview image, and the site has its icons', async ({ request }) => {
+  for (const path of ['/', '/ritratti', '/chi-e', '/diario']) {
+    const html = await (await request.get(path)).text()
+    const og = html.match(/<meta property="og:image" content="([^"]+)"/)?.[1]
+    expect(og, path).toBeTruthy()
+    const img = await request.get(og!.replace(/^https?:\/\/[^/]+/, ''))
+    expect(img.ok(), og).toBeTruthy()
+    expect(img.headers()['content-type']).toBe('image/png')
+    expect((await img.body()).length).toBeGreaterThan(5000)
+  }
+  const html = await (await request.get('/')).text()
+  expect(html).toContain('rel="icon"')
+  expect(html).toContain('rel="apple-touch-icon"')
+  const apple = html.match(/<link rel="apple-touch-icon" href="([^"]+)"/)?.[1]
+  expect(apple).toBeTruthy()
+  expect((await request.get(apple!)).headers()['content-type']).toContain('image/png')
+})
+
 test('security headers: CSP on the public site only', async ({ request }) => {
   const site = await request.get('/')
   expect(site.headers()['content-security-policy']).toContain("frame-ancestors 'none'")
