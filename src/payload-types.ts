@@ -434,6 +434,8 @@ export interface Page {
     kicker?: string | null;
     question?: string | null;
     hint?: string | null;
+    hintPhone?: string | null;
+    open?: string | null;
     near?: string | null;
     far?: string | null;
     /**
@@ -899,6 +901,8 @@ export interface PagesSelect<T extends boolean = true> {
         kicker?: T;
         question?: T;
         hint?: T;
+        hintPhone?: T;
+        open?: T;
         near?: T;
         far?: T;
         counter?: T;

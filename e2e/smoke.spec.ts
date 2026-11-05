@@ -370,22 +370,28 @@ test.describe('with a logged-in admin', () => {
   })
 })
 
-test('on a phone the home is the same field: a tap focuses a face, a second tap opens it', async ({
+test('on a phone the home is a list you scroll: the face in the middle is in focus, one tap opens it', async ({
   browser,
 }) => {
   const context = await browser.newContext({
     baseURL: ORIGIN,
-    viewport: { width: 390, height: 844 },
+    viewport: { width: 390, height: 664 },
     hasTouch: true,
     isMobile: true,
   })
   const page = await context.newPage()
   await page.goto('/')
-  // Tilting the phone moves the faces.
   const field = page.locator('.field.home')
-  // Browsers that ask for permission (iPhone, recent Chrome) get the request on the first tap.
   await expect(field).toBeVisible()
-  await field.tap({ position: { x: 195, y: 430 } })
+  // At the top the home asks its own question and says what to do.
+  await expect(page.locator('h1.question')).toHaveText(/Chi eri prima/)
+  await expect(page.locator('.phone-hint')).toBeVisible()
+  // Faces that only repeat another one are not in the list.
+  await expect(page.locator('a.card:visible')).toHaveCount(1)
+
+  // Tilting the phone moves the faces. Browsers that ask for permission (iPhone, recent Chrome)
+  // get the request on the first tap, here on an empty spot beside the face.
+  await field.tap({ position: { x: 384, y: 300 } })
   // Sent again on every attempt: the listener only exists once the page has hydrated.
   await expect
     .poll(async () => {
@@ -398,11 +404,16 @@ test('on a phone the home is the same field: a tap focuses a face, a second tap 
       return Number(await field.evaluate((el) => el.style.getPropertyValue('--mx')))
     })
     .toBeGreaterThan(0.5)
-  const card = page.locator('a.card').first()
-  await card.tap()
+
+  // Scrolling brings the face to the middle: it sharpens and its question and button appear.
+  await page.evaluate(() => window.scrollTo(0, 60))
   await expect(page.locator('h1.question')).toHaveText('Chi vedi, quando ti guardi?')
+  await expect(page.getByRole('link', { name: /Apri il ritratto/ })).toBeVisible()
   await expect(page).toHaveURL(`${ORIGIN}/`)
-  await card.tap()
+  // The questions replace each other, they never pile up.
+  await expect(page.locator('h1')).toHaveCount(1)
+  // One tap opens it.
+  await page.locator('a.card:visible').first().tap()
   await expect(page).toHaveURL(/\/ritratti\/ritratto-/)
   // Nothing may scroll sideways.
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)

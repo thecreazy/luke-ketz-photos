@@ -59,6 +59,9 @@ const baseHeaders = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   cacheComponents: true,
+  // Only used by `pnpm dev`: lets a phone on the same Wi-Fi open the dev server at http://<this IP>:3000.
+  // Change it when the Mac's address changes (`ipconfig getifaddr en0`/`en1`).
+  allowedDevOrigins: ['192.168.1.170'],
   partialPrefetching: true,
   async headers() {
     return [

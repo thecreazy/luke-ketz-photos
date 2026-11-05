@@ -27,6 +27,10 @@ one are listed in the footer.
 | Private galleries      | `/galleries/<slug>`         | **Private galleries** (password, expiry, counter); Pages → **Galleria privata** (the password screen) |
 | Legal and other pages  | `/<slug>`                   | Pages (Privacy, Cookies: drafts to review and publish)                                                |
 
+The home is a **field of faces on a computer** (hover or move the pointer) and a **list you scroll on a phone**: the face
+in the middle of the screen is in focus, its question shows in the panel at the bottom and one tap opens it. The phone
+list shows the faces ticked **Show in the home field** (up to 24) plus the photographer; the computer frame has 13 slots.
+
 Adding portraits: admin → **Upload photos** → Destination "Photos (public portraits)" → "Create portraits in" a
 series or "Single portraits". It creates **draft** portraits in the order selected: write each question, tick the
 home field ones and publish. The "N°" on the site is the position by **Order**.
@@ -91,8 +95,11 @@ pnpm dev                 # /admin -> create the first user
 
 ## Database migrations
 
-In development the schema syncs automatically (`push`). Whenever you change a collection or global, create a
-migration before deploying:
+**In this repo development also points at Neon and the real Spaces bucket** (the `.env`; the Docker values are in
+`.env.local.docker`, rename it to `.env.local` to use them). So the schema is **never** synced automatically (`push` is
+off): whenever you change a collection or global, create a migration, apply it, and only then run the site. Editing
+content in `pnpm dev` edits the live content; the public pages refresh after the next deploy or after an edit made on
+the live admin.
 
 ```bash
 pnpm payload migrate:create <name>   # review the generated file in src/migrations, then commit it

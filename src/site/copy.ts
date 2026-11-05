@@ -9,7 +9,9 @@ export const PAGE_COPY = {
     defaultQuestion: ['Question shown at rest', 'Chi eri prima che te lo dicessero gli altri?'],
     kicker: ['Line above the question at rest', 'Una domanda'],
     question: ['Line above a face’s question', 'La domanda'],
-    hint: ['Hint (bottom left)', 'Muovi lo sguardo · scorri per entrare nel campo'],
+    hint: ['Hint on a computer (bottom left)', 'Muovi lo sguardo · scorri per entrare nel campo'],
+    hintPhone: ['Hint on a phone, under the question', 'Scorri per entrare nel campo ↓'],
+    open: ['Phone: button that opens the face in focus', 'Apri il ritratto →'],
     near: ['Depth scale: near', 'Vicino'],
     far: ['Depth scale: far', 'Lontano'],
     counter: [

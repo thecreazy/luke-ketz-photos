@@ -31,7 +31,6 @@ export function useParallax<T extends HTMLElement = HTMLDivElement>() {
     let raf = 0
     let x = 0
     let y = 0
-    let dragging = false
     const apply = () => {
       raf = 0
       el.style.setProperty('--mx', x.toFixed(3))
@@ -60,7 +59,7 @@ export function useParallax<T extends HTMLElement = HTMLDivElement>() {
         angle === 90 ? [db, -dg] : angle === 270 ? [-db, dg] : angle === 180 ? [-dg, -db] : [dg, db]
       tiltX = clamp(h / TILT_RANGE)
       tiltY = clamp(v / TILT_RANGE)
-      if (!dragging) set(tiltX, tiltY)
+      set(tiltX, tiltY)
     }
     let listening = false
     const listen = () => {
@@ -78,7 +77,7 @@ export function useParallax<T extends HTMLElement = HTMLDivElement>() {
         .call(window.DeviceOrientationEvent)
         .then((state) => state === 'granted' && listen())
         .catch(() => {
-          // Refused or unavailable: dragging keeps working.
+          // Refused or unavailable: the faces simply stay still.
         })
     }
     if (touch) {
@@ -87,14 +86,12 @@ export function useParallax<T extends HTMLElement = HTMLDivElement>() {
     }
 
     const move = (e: PointerEvent) => {
-      if (e.pointerType === 'touch') dragging = true
+      // A finger scrolls the page: on a touch screen only the tilt of the phone moves the faces.
+      if (e.pointerType === 'touch') return
       const r = el.getBoundingClientRect()
       set(((e.clientX - r.left) / r.width - 0.5) * 2, ((e.clientY - r.top) / r.height - 0.5) * 2)
     }
-    const leave = () => {
-      dragging = false
-      set(tiltX, tiltY)
-    }
+    const leave = () => set(tiltX, tiltY)
     el.addEventListener('pointermove', move)
     el.addEventListener('pointerleave', leave)
     el.addEventListener('pointerup', leave)

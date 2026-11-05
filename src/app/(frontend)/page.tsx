@@ -29,22 +29,12 @@ const SLOTS: [number, number, number, number][] = [
   [1140, 300, 80, 0.95],
 ]
 
-// Same faces and depths on a phone-shaped frame (390x700, what Safari leaves visible): x, y and width. Index i matches SLOTS[i].
-const MOBILE_SLOTS: [number, number, number][] = [
-  [14, 92, 110],
-  [268, 110, 80],
-  [236, 450, 120],
-  [170, 250, 60],
-  [24, 450, 130],
-  [8, 270, 70],
-  [306, 330, 70],
-  [190, 230, 44],
-  [332, 250, 40],
-  [110, 380, 36],
-  [16, 372, 42],
-  [210, 400, 36],
-  [166, 600, 50],
-]
+// On a phone the faces are a vertical list instead of a frame: this is how deep each one sits
+// (0 near … 1 far) and on which side it leans, in turns.
+const LIST_DEPTH = [0.15, 0.5, 0.3, 0.65, 0.1, 0.45, 0.25]
+const LIST_SIDE = [0, 1, 2, 1] // left, right, centre, right
+// How many faces the phone list shows at most.
+const LIST_MAX = 24
 
 export default async function Home() {
   const [portraits, s, about, legal, it, menu] = await Promise.all([
@@ -63,34 +53,58 @@ export default async function Home() {
 
   const cards: FieldCard[] = []
   const named = new Set<string>()
-  if (pool.length > 0) {
-    SLOTS.forEach(([x, y, w, z], i) => {
-      const isAbout = i === SLOTS.length - 1 && aboutSrc !== null
-      const p = pool[i % pool.length]
-      const src = isAbout ? aboutSrc : photoSources(p.doc.image)
-      if (!src) return
-      // The same portrait can fill several slots; a transition name must be unique.
-      const vt = !isAbout && !named.has(p.doc.slug) ? `portrait-${p.doc.slug}` : undefined
-      if (vt) named.add(p.doc.slug)
-      cards.push({
-        key: `${i}`,
-        vt,
-        href: isAbout ? '/chi-e' : `/ritratti/${p.doc.slug}`,
-        src: src.src,
-        srcSet: src.srcSet,
-        alt: isAbout ? `Ritratto di ${s.siteName}` : fmt(it.portraits.alt, { n: p.n }),
-        tag: isAbout ? it.home.aboutCard : `N° ${String(p.n).padStart(2, '0')}`,
-        about: isAbout,
-        question: isAbout ? it.home.aboutQuestion : (p.doc.question ?? ''),
-        x,
-        y,
-        w,
-        z,
-        xm: MOBILE_SLOTS[i][0],
-        ym: MOBILE_SLOTS[i][1],
-        wm: MOBILE_SLOTS[i][2],
-      })
+  const shown = { n: 0 } // faces the phone list shows, to alternate their sides
+
+  type Slot = [number, number, number, number]
+  const add = (
+    key: string,
+    p: (typeof pool)[number],
+    about: boolean,
+    slot: Slot,
+    opts: { repeat?: boolean; listOnly?: boolean },
+  ) => {
+    const src = about ? aboutSrc : photoSources(p.doc.image)
+    if (!src) return
+    // The same portrait can fill several slots; a transition name must be unique.
+    const vt = !about && !named.has(p.doc.slug) ? `portrait-${p.doc.slug}` : undefined
+    if (vt) named.add(p.doc.slug)
+    const visible = !opts.repeat
+    cards.push({
+      key,
+      vt,
+      href: about ? '/chi-e' : `/ritratti/${p.doc.slug}`,
+      src: src.src,
+      srcSet: src.srcSet,
+      alt: about ? `Ritratto di ${s.siteName}` : fmt(it.portraits.alt, { n: p.n }),
+      tag: about ? it.home.aboutCard : `N° ${String(p.n).padStart(2, '0')}`,
+      about,
+      n: about ? undefined : String(p.n).padStart(2, '0'),
+      question: about ? it.home.aboutQuestion : (p.doc.question ?? ''),
+      x: slot[0],
+      y: slot[1],
+      w: slot[2],
+      z: slot[3],
+      zl: LIST_DEPTH[cards.length % LIST_DEPTH.length],
+      side: visible ? LIST_SIDE[shown.n++ % LIST_SIDE.length] : 0,
+      repeat: opts.repeat,
+      listOnly: opts.listOnly,
     })
+  }
+
+  if (pool.length > 0) {
+    const last = SLOTS.length - 1
+    // The computer field: one face per slot (a short pool repeats; the phone list skips repeats).
+    SLOTS.forEach((slot, i) => {
+      if (i === last && aboutSrc) return
+      add(`${i}`, pool[i % pool.length], false, slot, { repeat: i >= pool.length })
+    })
+    // More faces for the phone list only: it can show more than the frame has room for.
+    // (When the photographer takes the last slot, the face that slot would have had goes here too.)
+    pool.slice(aboutSrc ? SLOTS.length - 1 : SLOTS.length, LIST_MAX).forEach((p, k) => {
+      add(`more-${k}`, p, false, [0, 0, 0, 1], { listOnly: true })
+    })
+    // The photographer comes last in the list, and takes the last slot of the field.
+    if (aboutSrc) add('about', pool[0], true, SLOTS[last], {})
   }
 
   return (

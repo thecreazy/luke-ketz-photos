@@ -59,8 +59,9 @@ export default buildConfig({
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') },
   db: postgresAdapter({
     pool: { connectionString: env.DATABASE_URL, max: 5 },
-    // In development the schema syncs automatically; in production use migrations (pnpm payload migrate).
-    push: process.env.NODE_ENV !== 'production',
+    // Never auto-sync the schema: in development this site points at the real database (Neon), so
+    // every change goes through a migration (pnpm payload migrate:create, then migrate).
+    push: false,
   }),
   sharp,
   upload: { limits: { fileSize: MAX_UPLOAD_BYTES } },
