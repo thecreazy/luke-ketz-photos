@@ -62,14 +62,19 @@ export default async function Home() {
   const aboutSrc = photoSources(about.portrait)
 
   const cards: FieldCard[] = []
+  const named = new Set<string>()
   if (pool.length > 0) {
     SLOTS.forEach(([x, y, w, z], i) => {
       const isAbout = i === SLOTS.length - 1 && aboutSrc !== null
       const p = pool[i % pool.length]
       const src = isAbout ? aboutSrc : photoSources(p.doc.image)
       if (!src) return
+      // The same portrait can fill several slots; a transition name must be unique.
+      const vt = !isAbout && !named.has(p.doc.slug) ? `portrait-${p.doc.slug}` : undefined
+      if (vt) named.add(p.doc.slug)
       cards.push({
         key: `${i}`,
+        vt,
         href: isAbout ? '/chi-e' : `/ritratti/${p.doc.slug}`,
         src: src.src,
         srcSet: src.srcSet,

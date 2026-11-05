@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useRef, useState, ViewTransition } from 'react'
 
 import type { Copy } from './copy'
 import { fmt } from './copy'
@@ -24,6 +24,8 @@ export type FieldCard = {
   y: number
   w: number
   z: number
+  // Name of the photo for the page transition (unique on the page), when it opens a portrait.
+  vt?: string
   // Same slot on the 390x844 phone frame.
   xm: number
   ym: number
@@ -52,18 +54,49 @@ export function HomeField({
   menu,
 }: Props) {
   const [active, setActive] = useState<number | null>(null)
+  // The question only animates once it has changed: the first paint stays as it is.
+  const [changed, setChanged] = useState(false)
+  const choose = (i: number | null) => {
+    setActive(i)
+    if (i !== null) setChanged(true)
+  }
   const ref = useParallax<HTMLDivElement>()
   const cur = active === null ? null : cards[active]
+
+  // The lens: faces near the pointer (or the finger) come into focus, the others stay soft.
+  const lensFrame = useRef(0)
+  const lens = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const field = e.currentTarget
+    const { clientX, clientY } = e
+    cancelAnimationFrame(lensFrame.current)
+    lensFrame.current = requestAnimationFrame(() => {
+      const radius = e.pointerType === 'touch' ? 150 : 260
+      field.querySelectorAll<HTMLElement>('.card').forEach((card) => {
+        const r = card.getBoundingClientRect()
+        const d = Math.hypot(clientX - (r.left + r.width / 2), clientY - (r.top + r.height / 2))
+        card.style.setProperty('--near', Math.max(0, 1 - d / radius).toFixed(2))
+      })
+    })
+  }
+  const lensOff = (e: React.PointerEvent<HTMLDivElement>) => {
+    cancelAnimationFrame(lensFrame.current)
+    e.currentTarget
+      .querySelectorAll<HTMLElement>('.card')
+      .forEach((card) => card.style.removeProperty('--near'))
+  }
 
   return (
     <div
       ref={ref}
       className="field glow home"
       data-hover={cur ? '' : undefined}
-      onMouseLeave={() => setActive(null)}
+      onMouseLeave={() => choose(null)}
+      onPointerMove={lens}
+      onPointerLeave={lensOff}
       onClick={(e) => {
         // Touch: a tap on the empty field lets go of the focused face.
-        if (!(e.target as HTMLElement).closest('a')) setActive(null)
+        if (!(e.target as HTMLElement).closest('a')) choose(null)
       }}
     >
       <div className="field-layer">
@@ -76,17 +109,17 @@ export function HomeField({
               href={c.href}
               className="card"
               data-on={on ? '' : undefined}
-              onMouseEnter={() => setActive(i)}
+              onMouseEnter={() => choose(i)}
               onFocus={(e) => {
                 // Keyboard only: on touch the focus that comes with a tap must not count as the first tap.
-                if (e.currentTarget.matches(':focus-visible')) setActive(i)
+                if (e.currentTarget.matches(':focus-visible')) choose(i)
               }}
               onClick={(e) => {
                 // No hover on touch screens: the first tap brings the face into focus and shows
                 // its question, the second one opens it.
                 if (!window.matchMedia('(hover: hover)').matches && active !== i) {
                   e.preventDefault()
-                  setActive(i)
+                  choose(i)
                 }
               }}
               style={
@@ -94,6 +127,7 @@ export function HomeField({
                   '--x': c.x,
                   '--y': c.y,
                   '--w': c.w,
+                  '--i': i,
                   '--xm': c.xm,
                   '--ym': c.ym,
                   '--wm': c.wm,
@@ -105,15 +139,31 @@ export function HomeField({
                 } as React.CSSProperties
               }
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={c.src}
-                srcSet={c.srcSet}
-                sizes={`(max-width: 760px) 50vw, ${(c.w / 14.4).toFixed(1)}vw`}
-                alt={c.alt}
-                loading={i < 4 ? 'eager' : 'lazy'}
-                decoding="async"
-              />
+              {c.vt ? (
+                <ViewTransition name={c.vt} share="morph" default="none">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={c.src}
+                    srcSet={c.srcSet}
+                    sizes={`(max-width: 760px) 50vw, ${(c.w / 14.4).toFixed(1)}vw`}
+                    alt={c.alt}
+                    loading={i < 4 ? 'eager' : 'lazy'}
+                    decoding="async"
+                  />
+                </ViewTransition>
+              ) : (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={c.src}
+                    srcSet={c.srcSet}
+                    sizes={`(max-width: 760px) 50vw, ${(c.w / 14.4).toFixed(1)}vw`}
+                    alt={c.alt}
+                    loading={i < 4 ? 'eager' : 'lazy'}
+                    decoding="async"
+                  />
+                </>
+              )}
               <span className="corner tl" aria-hidden="true" />
               <span className="corner br" aria-hidden="true" />
               <span className="tag mono" aria-hidden="true">
@@ -137,7 +187,11 @@ export function HomeField({
         <span className="kicker mono">
           {cur ? (cur.about ? it.aboutCard : it.question) : it.kicker}
         </span>
-        <h1 className="serif question" aria-live="polite">
+        <h1
+          key={cur ? cur.question : defaultQuestion}
+          className={`serif question${changed ? ' swap' : ''}`}
+          aria-live="polite"
+        >
           {cur ? cur.question : defaultQuestion}
         </h1>
         <svg className="stroke" aria-hidden="true" viewBox="0 0 420 26">

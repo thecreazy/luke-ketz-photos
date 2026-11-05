@@ -104,6 +104,16 @@ test.describe('with a logged-in admin', () => {
     await page.goto('/')
     await expect(page.getByText('1 volti · 1 domande')).toBeVisible()
     await expect(page.locator('a.card').first()).toBeVisible()
+    // The lens: the face under the pointer comes into focus.
+    await page.locator('a.card').first().hover()
+    await expect
+      .poll(() =>
+        page
+          .locator('a.card')
+          .first()
+          .evaluate((el) => Number(el.style.getPropertyValue('--near'))),
+      )
+      .toBeGreaterThan(0.5)
 
     await page.goto(`/ritratti/${first.slug}`)
     await expect(page.getByRole('heading', { name: 'Chi vedi, quando ti guardi?' })).toBeVisible()
@@ -113,8 +123,23 @@ test.describe('with a logged-in admin', () => {
     await page.locator('a.logo').first().click()
     await expect(page).toHaveURL(/\/$/)
     await page.goto('/ritratti')
+    // Opening a portrait runs a view transition: the photo flies from its tile to the page.
+    await page.evaluate(() => {
+      const w = window as unknown as { __vt: number }
+      const start = document.startViewTransition?.bind(document)
+      w.__vt = 0
+      if (start) {
+        document.startViewTransition = ((...args: Parameters<typeof start>) => {
+          w.__vt++
+          return start(...args)
+        }) as typeof document.startViewTransition
+      }
+    })
     await page.locator('.tile').first().click()
     await expect(page).toHaveURL(new RegExp(`/ritratti/${first.slug}$`))
+    expect(await page.evaluate(() => (window as unknown as { __vt: number }).__vt)).toBeGreaterThan(
+      0,
+    )
     await page.getByRole('link', { name: /Indietro/ }).click()
     await expect(page).toHaveURL(/\/ritratti$/)
 

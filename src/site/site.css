@@ -176,8 +176,9 @@ button {
   width: calc(var(--w) / 14.4 * 1vw);
   aspect-ratio: 1 / 1.28;
   z-index: var(--zi, 1);
-  opacity: var(--o, 1);
-  filter: blur(calc(var(--b, 0) * var(--bu, 1px)));
+  /* --near (0..1) is set by the lens on the home: the closer the pointer, the sharper the face. */
+  opacity: calc(var(--o, 1) + (1 - var(--o, 1)) * var(--near, 0) * 0.7);
+  filter: blur(calc(var(--b, 0) * var(--bu, 1px) * (1 - var(--near, 0) * 0.9)));
   transform: translate(
       calc(var(--mx, 0) * var(--ax, -60px) * (1 - var(--z, 0.5))),
       calc(var(--my, 0) * var(--ay, -40px) * (1 - var(--z, 0.5)))
@@ -1670,4 +1671,131 @@ button {
 .about-main[data-solo] {
   grid-template-columns: minmax(0, 720px);
   justify-content: center;
+}
+
+/* ───────────────────────── Motion ─────────────────────────
+   Everything below is decoration: it is off for visitors who ask for reduced motion and where the
+   browser lacks the feature, and the site works the same without it. */
+
+/* Page transitions (View Transitions API): the photo flies from its tile to the portrait page. */
+::view-transition-group(.morph) {
+  animation-duration: 520ms;
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.1, 1);
+}
+::view-transition-image-pair(.morph) {
+  animation-name: via-blur;
+}
+@keyframes via-blur {
+  40% {
+    filter: blur(6px);
+  }
+}
+::view-transition-old(root) {
+  animation: 160ms ease-out both vt-out;
+}
+::view-transition-new(root) {
+  animation: 300ms ease-in 60ms both vt-in;
+}
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    filter: blur(6px);
+  }
+}
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+  }
+}
+/* The morph already brings the photo in: its own reveal would play twice. */
+@supports (view-transition-name: none) {
+  .hero img {
+    animation: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-image-pair(*) {
+    animation: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Home: the faces settle into the field one after the other. */
+  .field.home .card {
+    animation: settle 1.4s cubic-bezier(0.2, 0.7, 0.1, 1) backwards;
+    animation-delay: calc(var(--i, 0) * 80ms);
+  }
+  @keyframes settle {
+    from {
+      translate: 0 28px;
+      scale: 0.94;
+      opacity: 0.25;
+    }
+  }
+  /* The question swaps like a lens racking focus: out of focus, then sharp. */
+  .question.swap {
+    animation: rack 0.55s cubic-bezier(0.2, 0.7, 0.1, 1) both;
+  }
+  @keyframes rack {
+    from {
+      opacity: 0;
+      filter: blur(10px);
+      translate: 0 8px;
+    }
+  }
+}
+
+/* Photos and frames come into view as you scroll (CSS only, no script). */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .tile,
+    .stack .shot,
+    .b-photos > * {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 55%;
+    }
+    .fr {
+      animation: reveal linear both;
+      animation-timeline: view(inline);
+      animation-range: entry 0% entry 60%;
+    }
+    @keyframes reveal {
+      from {
+        opacity: 0;
+        translate: 0 40px;
+        scale: 0.96;
+      }
+    }
+  }
+}
+
+/* A thin line at the top of an article shows how far you have read. */
+.read-progress {
+  display: none;
+}
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .read-progress {
+      display: block;
+      position: fixed;
+      inset: 0 0 auto;
+      height: 2px;
+      z-index: 150;
+      background: var(--accent);
+      transform-origin: 0 50%;
+      transform: scaleX(0);
+      animation: read-grow linear both;
+      animation-timeline: scroll(root block);
+    }
+    @keyframes read-grow {
+      to {
+        transform: scaleX(1);
+      }
+    }
+  }
 }

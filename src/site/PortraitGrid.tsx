@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, ViewTransition } from 'react'
 
 import type { Copy } from './copy'
 
@@ -89,20 +89,23 @@ export function PortraitGrid({ items, series, copy: it }: Props) {
               className="tile-img"
               style={{ aspectRatio: `${t.width} / ${t.height}`, background: t.color }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={t.src}
-                srcSet={t.srcSet}
-                sizes="(max-width: 700px) 50vw, (max-width: 1100px) 33vw, 30vw"
-                alt={t.alt}
-                width={t.width}
-                height={t.height}
-                // The grid is in columns, so the top of each column is not the first items of the
-                // list: the whole first page loads at once (small variants) and the tops get priority.
-                loading={i < PAGE ? 'eager' : 'lazy'}
-                fetchPriority={i < PAGE && i % 4 === 0 ? 'high' : undefined}
-                decoding="async"
-              />
+              {/* The photo flies to the portrait page: same name on both sides. */}
+              <ViewTransition name={`portrait-${t.slug}`} share="morph" default="none">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={t.src}
+                  srcSet={t.srcSet}
+                  sizes="(max-width: 700px) 50vw, (max-width: 1100px) 33vw, 30vw"
+                  alt={t.alt}
+                  width={t.width}
+                  height={t.height}
+                  // The grid is in columns, so the top of each column is not the first items of the
+                  // list: the whole first page loads at once (small variants) and the tops get priority.
+                  loading={i < PAGE ? 'eager' : 'lazy'}
+                  fetchPriority={i < PAGE && i % 4 === 0 ? 'high' : undefined}
+                  decoding="async"
+                />
+              </ViewTransition>
             </span>
             <span className="cap">
               <span className="mono">N° {String(t.n).padStart(2, '0')}</span>

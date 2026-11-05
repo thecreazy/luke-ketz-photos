@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Suspense } from 'react'
+import { Suspense, ViewTransition } from 'react'
 
 import { JsonLd } from '@/components/JsonLd'
 import { getCopy, getPortraits, getPortraitSlugs, getSettings } from '@/lib/data'
@@ -94,17 +94,19 @@ async function PortraitView({ params }: Props) {
 
       <main className="portrait-main">
         <figure className="hero">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={photo.src}
-            srcSet={photo.srcSet}
-            sizes="(max-width: 900px) 90vw, 40vw"
-            alt={photo.alt || fmt(it.alt, { n })}
-            width={photo.width}
-            height={photo.height}
-            fetchPriority="high"
-            style={{ background: photo.dominantColor ?? undefined }}
-          />
+          <ViewTransition name={`portrait-${doc.slug}`} share="morph" default="none">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={photo.src}
+              srcSet={photo.srcSet}
+              sizes="(max-width: 900px) 90vw, 40vw"
+              alt={photo.alt || fmt(it.alt, { n })}
+              width={photo.width}
+              height={photo.height}
+              fetchPriority="high"
+              style={{ background: photo.dominantColor ?? undefined }}
+            />
+          </ViewTransition>
           <span className="corner tl" aria-hidden="true" />
           <span className="corner br" aria-hidden="true" />
         </figure>

@@ -73,6 +73,7 @@ async function ArticleView({ params }: Props) {
           },
         ]}
       />
+      <div className="read-progress" aria-hidden="true" />
       {post.layout === 'fotoracconto' ? (
         <ArticleFotoracconto {...view} />
       ) : post.layout === 'domande' ? (
