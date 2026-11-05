@@ -392,6 +392,28 @@ button {
 .legal a:hover {
   color: var(--accent);
 }
+/* The maker's signature: handwriting, quiet until it is pointed at. */
+.credit {
+  font-size: 16px;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--muted);
+  transition: color 0.3s;
+}
+.credit-name {
+  color: var(--sub);
+  border-bottom: 1px solid var(--line2);
+  transition: border-color 0.3s;
+}
+.foot a.credit:hover,
+.legal a.credit:hover {
+  color: var(--accent);
+}
+.credit:hover .credit-name {
+  color: var(--accent);
+  border-color: var(--accent);
+}
 
 /* Phone: the same field, laid out on a 390x700 frame. A tap focuses a face, a drag moves the field. */
 @media (max-width: 760px) {

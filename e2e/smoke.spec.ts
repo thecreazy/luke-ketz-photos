@@ -337,6 +337,16 @@ test('shared links get a preview image, and the site has its icons', async ({ re
   expect((await request.get(apple!)).headers()['content-type']).toContain('image/png')
 })
 
+test('the maker signs the footer of the pages and the home, with a link to their site', async ({
+  request,
+}) => {
+  for (const path of ['/', '/ritratti', '/chi-e', '/diario']) {
+    const html = await (await request.get(path)).text()
+    expect(html, path).toContain('fatto a mano da')
+    expect(html, path).toContain('href="https://canellariccardo.it/')
+  }
+})
+
 test('security headers: CSP on the public site only', async ({ request }) => {
   const site = await request.get('/')
   expect(site.headers()['content-security-policy']).toContain("frame-ancestors 'none'")

@@ -5,6 +5,7 @@ import { useState } from 'react'
 
 import type { Copy } from './copy'
 import { fmt } from './copy'
+import { Credit } from './Credit'
 import { SiteNav } from './SiteNav'
 import type { MenuItem } from './SiteNav'
 import { useParallax } from './use-parallax'
@@ -160,15 +161,14 @@ export function HomeField({
       <div className="home-bottom">
         <div className="home-left">
           <span className="hint mono">{it.hint}</span>
-          {legal.length > 0 && (
-            <nav className="legal mono" aria-label="Informazioni">
-              {legal.map((l) => (
-                <Link key={l.id} href={`/${l.slug}`}>
-                  {l.title}
-                </Link>
-              ))}
-            </nav>
-          )}
+          <nav className="legal mono" aria-label="Informazioni">
+            {legal.map((l) => (
+              <Link key={l.id} href={`/${l.slug}`}>
+                {l.title}
+              </Link>
+            ))}
+            <Credit />
+          </nav>
         </div>
         <SiteNav items={menu} />
       </div>

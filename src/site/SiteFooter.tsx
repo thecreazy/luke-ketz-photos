@@ -2,6 +2,7 @@ import Link from 'next/link'
 
 import { getNavPages, getSettings } from '@/lib/data'
 
+import { Credit } from './Credit'
 import { Year } from './Year'
 
 export async function SiteFooter() {
@@ -18,6 +19,7 @@ export async function SiteFooter() {
           </Link>
         ))}
         {s.instagram && <a href={s.instagram}>Instagram</a>}
+        <Credit />
       </nav>
     </footer>
   )
