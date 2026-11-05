@@ -27,31 +27,76 @@ one are listed in the footer.
 | Private galleries      | `/galleries/<slug>`         | **Private galleries** (password, expiry, counter); Pages → **Galleria privata** (the password screen) |
 | Legal and other pages  | `/<slug>`                   | Pages (Privacy, Cookies: drafts to review and publish)                                                |
 
-The home is a **field of faces on a computer** (hover or move the pointer) and a **list you scroll on a phone**: the face
-in the middle of the screen is in focus, its question shows in the panel at the bottom and one tap opens it. The phone
-list shows the faces ticked **Show in the home field** (up to 24) plus the photographer; the computer frame has 13 slots.
+### The home
 
-Adding portraits: admin → **Upload photos** → Destination "Photos (public portraits)" → "Create portraits in" a
-series or "Single portraits". It creates **draft** portraits in the order selected: write each question, tick the
-home field ones and publish. The "N°" on the site is the position by **Order**.
+A **field of faces on a computer** (hover, or move the pointer: the faces near it come into focus and the question
+changes) and a **list you scroll on a phone**: the face nearest the middle of the screen is in focus, its question shows
+in the panel at the bottom with an "open" button, scrolling settles gently on a face and one tap opens it. The phone
+list shows the faces ticked **Show in the home field** (up to 24) plus the photographer; the computer frame has 13
+slots. Layout and numbers: `src/app/(frontend)/page.tsx` (slots), `HomeField.tsx`, the end of `src/site/site.css`.
 
-Diary layouts (field **Layout** of the article): **A · Campo** (text, big quote, portrait), **B · Fotoracconto**
-(photos through the day), **C · Domande e risposte**, **D · Dietro lo scatto** (one photo, timeline, contact sheet).
-Only the fields of the chosen layout are shown.
+### Adding content
 
-Events, tickets and bookings are **not built** (decided out for now). A contacts page will be added later; for now
-the email and Instagram of Site settings appear on Chi è and in the footer.
+- **Portraits**: admin → **Upload photos** → Destination "Photos (public portraits)" → "Create portraits in" a series
+  or "Single portraits". It creates **draft** portraits in the order selected: write each question, tick the home
+  field ones and publish. The "N°" on the site is the position by **Order**. The upload leaves the **alt text** empty
+  on purpose (a file name is not a description): the site then says "Ritratto N° 12" (editable in Pages → Ritratti);
+  write a real description in the Media library when you can.
+- **Diary layouts** (field **Layout** of the article): **A · Campo** (text, big quote, portrait), **B · Fotoracconto**
+  (photos through the day), **C · Domande e risposte**, **D · Dietro lo scatto** (one photo, timeline, contact sheet).
+  Only the fields of the chosen layout are shown.
+- **Private galleries**: a photo opens full screen (arrows, keyboard, swipe) with a "download" button for the
+  full-size file (signed link, 1 hour). Texts of the viewer: Pages → Galleria privata.
+- **Exhibitions, steps and the portrait of Luke** are fields of Pages → Chi è.
 
-### Local development
+Events, tickets and bookings are **not built** (decided out for now). A contacts page can be added as a plain text
+page in Pages; the email and Instagram of Site settings appear on Chi è (the "Scrivimi" link only shows when the
+email is set) and in the footer.
 
-`docker compose up -d`, then `pnpm dev`. `.env.local` (git-ignored) points to the local Postgres and MinIO and wins
-over `.env`, which holds the real services (Neon, Spaces, Upstash). Private test photos stay on the machine.
+### Design details worth knowing
 
-### Before the first deploy
+- **Motion** (`src/site/site.css`, "Motion"): a photo flies from its tile to the portrait page (View Transitions, in
+  React's `<ViewTransition>`), the home faces settle in and the question racks focus, photos and frames come into view
+  while scrolling and an article shows a reading bar (CSS scroll-driven animations). All of it is decoration: it is off
+  for reduced motion and where the browser lacks the feature. There is no gyroscope (removed on purpose).
+- **Signature**: "fatto a mano da thecreazy" (link to the maker's site) in the footer and on the home. It lives in
+  `src/site/maker.ts` / `Credit.tsx`, not in the admin.
+- **Accessibility**: "Vai al contenuto" link, one `main` per page, 2px focus ring, 24-44px touch targets, the home's
+  DOM order is logo, menu, then the faces. Checked with axe-core (0 issues on every page type) and Lighthouse
+  (accessibility 100).
+- **Social preview**: `/og` generates a 1200x630 image (site name, home question, a few portraits) used by every page
+  that has no image of its own (priority: page SEO image, article cover, "Default social image" in Site settings,
+  `/og`). It reads `src/site/fonts/NothingYouCouldDo-Regular.ttf` (OFL). The favicon and the iPhone icon are a focus
+  frame (`icon.svg`, `apple-icon.tsx`).
 
-The migrations were regenerated as a single `initial` one for this model. If the Neon database already ran the
-template's old migrations, empty it first (SQL editor: `DROP SCHEMA public CASCADE; CREATE SCHEMA public;`), or
-`payload migrate` will fail on tables that already exist.
+### SEO
+
+Main pages use their **SEO** fields (Pages → SEO) and fall back to Italian defaults (`DEFAULT_SEO` in
+`src/site/copy.ts`). Portraits fall back to their note, else "{question} Ritratto N° {n} di {site}". Structured data:
+Person and WebSite (home), ProfilePage (Chi è), ImageGallery (Ritratti), ImageObject + BreadcrumbList (a portrait),
+BlogPosting + BreadcrumbList (an article). `/sitemap.xml` lists the photos of portraits and article covers and the
+last edit of every page. Site settings hold the job title and the **Google Search Console / Bing** verification codes
+(paste only the code).
+
+### Development
+
+In this repo **development points at Neon and the real Spaces bucket** (the `.env`). The old Docker values are in
+`.env.local.docker`: rename it to `.env.local` to use them, with `docker compose up -d`. Consequences:
+
+- Editing content in `pnpm dev` edits the live content; the public pages refresh after the next deploy or after an
+  edit made on the live admin (they are cached).
+- The schema is **never** synced automatically (`push` is off). After a change to a collection or global: create the
+  migration (`pnpm payload migrate:create <name>`), review it, apply it with
+  `NODE_ENV=production pnpm payload migrate` (the production flag skips interactive questions), then restart `pnpm dev`.
+- **Migrations are additive only**: the site is live, so an applied migration is never edited or deleted, and a
+  rename is a new migration. Vercel applies the pending ones in `vercel-build`.
+- To open the dev server from a phone on the same Wi-Fi, put the Mac's address in `allowedDevOrigins`
+  (`next.config.mjs`) and visit `http://<address>:3000`. Do not run `pnpm test:e2e` while `pnpm dev` is running: it
+  rebuilds `.next`.
+
+---
+
+## The template
 
 Template for photographer websites: public site + management portal in the **same Next.js project**,
 a single deploy on Vercel.
@@ -71,7 +116,9 @@ Copies the template (without `node_modules`, `.git`, `.env`), renames the packag
 fresh `PAYLOAD_SECRET`, runs `git init` plus a first commit and removes the clone script. After the copy there
 is no link to the template: fixes do not propagate on their own.
 
-## Local development
+## Local development (template default)
+
+For this site see **Development** above (it points at Neon). The template's default, on Docker:
 
 ```bash
 docker compose up -d     # Postgres (port 5433) + MinIO (S3 on 9100, console on 9101), buckets already created
@@ -95,11 +142,8 @@ pnpm dev                 # /admin -> create the first user
 
 ## Database migrations
 
-**In this repo development also points at Neon and the real Spaces bucket** (the `.env`; the Docker values are in
-`.env.local.docker`, rename it to `.env.local` to use them). So the schema is **never** synced automatically (`push` is
-off): whenever you change a collection or global, create a migration, apply it, and only then run the site. Editing
-content in `pnpm dev` edits the live content; the public pages refresh after the next deploy or after an edit made on
-the live admin.
+In development the template syncs the schema automatically (`push`); **this repo turned that off** (see **Development**).
+Whenever you change a collection or global, create a migration before deploying:
 
 ```bash
 pnpm payload migrate:create <name>   # review the generated file in src/migrations, then commit it
@@ -135,24 +179,27 @@ malformed one fails immediately with a readable list instead of a cryptic error 
 ### Smoke tests
 
 `pnpm test:e2e` (needs Docker and Chrome) starts Postgres + MinIO from `docker-compose.yml`, creates an empty `e2e`
-database, builds the site and runs Playwright against it (`e2e/smoke.spec.ts`, about 15 seconds): first admin and
-login, photo upload, a published project showing on the site and a draft not, the in-use delete guard, a private
-gallery (wrong/right password, access counter, expiry), sitemap and security headers. CI runs the same job. Run it
-before copying changes from the template to existing clients. The attempt limits are not covered (they need Upstash).
+database, builds the site and runs Playwright against it (`e2e/smoke.spec.ts`, about 20 seconds): first admin and login,
+photo upload, a published portrait showing on the site and a draft not, the in-use delete guard, the page texts and
+menu edited from the admin, an article in each layout, a private gallery (wrong/right password, viewer and download,
+access counter, expiry), SEO (descriptions, structured data, image sitemap), social images and icons, the signature,
+keyboard skip link and landmarks, the phone home (scroll, focus, one tap), the transition between pages, and security
+headers. CI runs the same job. Run it before copying changes from the template to existing clients (not while
+`pnpm dev` is running). The attempt limits are not covered (they need Upstash).
 
 Uploads accept JPEG, PNG, WebP and AVIF only (no SVG, which can carry scripts) and are capped at 4 MB
 (`src/lib/upload.ts`).
 
 ## What is included
 
-| Area                                    | Where                                                                           |
-| --------------------------------------- | ------------------------------------------------------------------------------- |
-| Projects (photos, cover, SEO)           | `src/collections/Projects.ts`                                                   |
-| Pages and blog (rich text)              | `Pages.ts`, `Posts.ts`: sample structure, adapt it to the client                |
-| Home page                               | page with slug `home`, created on first start (`src/lib/seed.ts`)               |
-| Password-protected galleries            | `PrivateGalleries.ts`, `PrivateMedia.ts`, `src/app/(frontend)/galleries/[slug]` |
-| Site settings (name, bio, contacts, OG) | `src/globals/SiteSettings.ts`                                                   |
-| Photo upload                            | admin → **Upload photos** (`src/components/admin/`)                             |
+| Area                                    | Where                                                                              |
+| --------------------------------------- | ---------------------------------------------------------------------------------- |
+| Portraits, series (photos, SEO)         | `src/collections/Portraits.ts`, `Projects.ts` (series)                             |
+| Pages: every page and its texts         | `src/collections/Pages.ts`, defaults in `src/site/copy.ts`, seed `src/lib/seed.ts` |
+| Diary (4 article layouts)               | `src/collections/Posts.ts`, `src/site/articles.tsx`                                |
+| Password-protected galleries            | `PrivateGalleries.ts`, `PrivateMedia.ts`, `src/app/(frontend)/galleries/[slug]`    |
+| Site settings (name, contacts, SEO, OG) | `src/globals/SiteSettings.ts`                                                      |
+| Photo upload                            | admin → **Upload photos** (`src/components/admin/`)                                |
 
 ### Photo upload and images
 
@@ -197,17 +244,16 @@ for 10 minutes; on top of that `src/proxy.ts` allows 10 login requests per 10 mi
   (`'unsafe-inline'`) and the rest is closed: images only from the site and the storage, no framing, no plugins.
   **If a client's design loads something from another origin (fonts, video, analytics), add it in `next.config.mjs`**,
   otherwise the browser blocks it.
-- **SEO**: `/sitemap.xml` (published pages, projects and posts with their last edit; private galleries are left out)
-  and `/robots.txt` (blocks `/admin`, `/api/` and `/galleries/`) are generated and follow edits in the admin.
-  Pages set a canonical URL and Open Graph tags (default image: "Default social image" in the site settings), the
-  home, projects and posts carry JSON-LD, and private galleries are `noindex`.
-- `not-found.tsx` and `error.tsx` give the public site its 404 and error pages; `icon.svg` is a placeholder favicon.
+- **SEO**: see the **SEO** section above. `/robots.txt` blocks `/admin`, `/api/` and `/galleries/`; private galleries
+  are `noindex` and never in the sitemap.
+- `not-found.tsx` and `error.tsx` give the public site its 404 and error pages (the only texts not in the admin).
 
 ### Legal pages
 
 On a brand new site the first start also creates **Privacy policy** and **Cookie policy** as drafts, so they are not
-public and not in the menu. They are starting points, not legal advice: fill in the bracketed parts, have them
-reviewed and publish them. They assume no analytics, no contact form and only the technical gallery cookie: if a
+public and not in the menu (on Luke's site they were replaced by Italian texts and published; the owner's address,
+VAT number and email in the Privacy policy are still in brackets). They are starting points, not legal advice: fill
+in the bracketed parts, have them reviewed and publish them. They assume no analytics, no contact form and only the technical gallery cookie: if a
 client's design adds a third-party service, update them and add a consent banner. A page deleted later is not
 recreated.
 
