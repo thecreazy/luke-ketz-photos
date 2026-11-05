@@ -31,7 +31,9 @@ function Pic({
   media,
   sizes,
   priority,
+  fallback,
 }: {
+  fallback: string
   media: Media | number | null | undefined
   sizes: string
   priority?: boolean
@@ -44,7 +46,7 @@ function Pic({
       src={p.src}
       srcSet={p.srcSet}
       sizes={sizes}
-      alt={p.alt}
+      alt={p.alt || fallback}
       width={p.width}
       height={p.height}
       loading={priority ? 'eager' : 'lazy'}
@@ -86,7 +88,7 @@ export async function ArticleCampo({ post, next, faces }: Props) {
         {post.pullQuote && <blockquote className="serif pullquote">«{post.pullQuote}»</blockquote>}
         {post.cover && (
           <figure className="end-photo">
-            <Pic media={post.cover} sizes="(max-width: 700px) 90vw, 560px" />
+            <Pic fallback={post.title} media={post.cover} sizes="(max-width: 700px) 90vw, 560px" />
             <span className="corner tl" aria-hidden="true" />
           </figure>
         )}
@@ -105,7 +107,7 @@ export async function ArticleFotoracconto({ post, next }: Props) {
   return (
     <div className="article-b page">
       <header className="b-hero">
-        {post.cover && <Pic media={post.cover} sizes="100vw" priority />}
+        {post.cover && <Pic fallback={post.title} media={post.cover} sizes="100vw" priority />}
         <div className="b-shade" aria-hidden="true" />
         <div className="top over">
           <Link href="/" className="serif logo">
@@ -141,6 +143,7 @@ export async function ArticleFotoracconto({ post, next }: Props) {
                   {photos.map((ph) => (
                     <figure key={ph.id}>
                       <Pic
+                        fallback={post.title}
                         media={ph.image}
                         sizes={
                           photos.length === 1
@@ -207,7 +210,12 @@ export async function ArticleDietro({ post, next }: Props) {
   return (
     <div className="article-d">
       <aside className="d-photo">
-        <Pic media={post.cover} sizes="(max-width: 900px) 100vw, 50vw" priority />
+        <Pic
+          fallback={post.title}
+          media={post.cover}
+          sizes="(max-width: 900px) 100vw, 50vw"
+          priority
+        />
         <div className="b-shade" aria-hidden="true" />
         <Link href="/" className="serif logo">
           Luke Ketz
@@ -244,7 +252,11 @@ export async function ArticleDietro({ post, next }: Props) {
                         className="sheet-frame"
                         data-chosen={t.chosen === i + 1 ? '' : undefined}
                       >
-                        <Pic media={f} sizes="(max-width: 900px) 25vw, 12vw" />
+                        <Pic
+                          fallback={post.title}
+                          media={f}
+                          sizes="(max-width: 900px) 25vw, 12vw"
+                        />
                       </span>
                     ))}
                   </div>

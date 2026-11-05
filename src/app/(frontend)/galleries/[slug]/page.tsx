@@ -86,7 +86,7 @@ async function GalleryView({ params }: Props) {
               sizes="(min-width: 1200px) 1200px, 100vw"
               width={p.width}
               height={p.height}
-              alt={p.alt}
+              alt={p.alt || gallery.title}
               loading="lazy"
               decoding="async"
               style={{

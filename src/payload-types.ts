@@ -190,7 +190,10 @@ export interface Portrait {
  */
 export interface Media {
   id: number;
-  alt: string;
+  /**
+   * Describes the photo for people who cannot see it. Leave empty for portraits: the site then uses "Ritratto N°…" (editable in Pages → Ritratti).
+   */
+  alt?: string | null;
   /**
    * Blurred placeholder, generated at upload
    */
@@ -595,7 +598,10 @@ export interface PrivateGallery {
  */
 export interface PrivateMedia {
   id: number;
-  alt: string;
+  /**
+   * Describes the photo for people who cannot see it. Leave empty to use the gallery title.
+   */
+  alt?: string | null;
   blurDataURL?: string | null;
   prefix?: string | null;
   _objectKey?: string | null;

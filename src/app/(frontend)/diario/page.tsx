@@ -36,7 +36,7 @@ export default async function Diary() {
         .filter(Boolean)
         .join(' · '),
       src: photo ? (photo.srcSet.split(', ')[1]?.split(' ')[0] ?? photo.src) : null,
-      alt: photo?.alt ?? '',
+      alt: photo?.alt || p.title,
     }
   })
 
@@ -59,7 +59,7 @@ export default async function Diary() {
                     src={latestPhoto.src}
                     srcSet={latestPhoto.srcSet}
                     sizes="(max-width: 900px) 100vw, 55vw"
-                    alt={latestPhoto.alt}
+                    alt={latestPhoto.alt || latest.title}
                     width={latestPhoto.width}
                     height={latestPhoto.height}
                     fetchPriority="high"

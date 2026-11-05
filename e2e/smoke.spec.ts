@@ -99,6 +99,8 @@ test.describe('with a logged-in admin', () => {
     // Publishing must invalidate the cached pages without a redeploy.
     await page.goto('/ritratti')
     await expect(page.locator('.tile')).toHaveCount(1)
+    // The upload leaves the alt empty (a file name is no description): the site describes the portrait.
+    await expect(page.locator('.tile img').first()).toHaveAttribute('alt', /^Ritratto N° \d+$/)
     await page.goto('/')
     await expect(page.getByText('1 volti · 1 domande')).toBeVisible()
     await expect(page.locator('a.card').first()).toBeVisible()

@@ -26,7 +26,7 @@ export const photoSources = (media: Media | number | null | undefined): PhotoSou
     srcSet: candidates.map((c) => `${c.url} ${c.width}w`).join(', '),
     width: media.width,
     height: media.height,
-    alt: media.alt,
+    alt: media.alt ?? '',
     blurDataURL: media.blurDataURL,
     dominantColor: media.dominantColor,
   }

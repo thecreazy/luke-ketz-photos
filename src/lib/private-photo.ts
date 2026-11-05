@@ -23,7 +23,7 @@ export const signedPhotoSources = async (media: PrivateMedia): Promise<PhotoSour
     srcSet: signed.map((v) => `${v.url} ${v.width}w`).join(', '),
     width: media.width,
     height: media.height,
-    alt: media.alt,
+    alt: media.alt ?? '',
     blurDataURL: media.blurDataURL,
   }
 }

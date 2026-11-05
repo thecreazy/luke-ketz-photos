@@ -100,7 +100,9 @@ const prepare = async (file: File) => {
     blurDataURL,
     dominantColor,
     exif,
-    alt: base,
+    // Left empty on purpose: a file name is not a description. The site falls back to a
+    // sensible text and the real one is written in the Media library.
+    alt: '',
   }
 }
 

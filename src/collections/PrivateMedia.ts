@@ -16,9 +16,17 @@ export const PrivateMedia: CollectionConfig = {
     crop: false,
     focalPoint: false,
   },
-  admin: { useAsTitle: 'alt', defaultColumns: ['alt', 'filename'] },
+  admin: { useAsTitle: 'filename', defaultColumns: ['alt', 'filename'] },
   fields: [
-    { name: 'alt', type: 'text', required: true, label: 'Alt text' },
+    {
+      name: 'alt',
+      type: 'text',
+      label: 'Alt text',
+      admin: {
+        description:
+          'Describes the photo for people who cannot see it. Leave empty to use the gallery title.',
+      },
+    },
     { name: 'blurDataURL', type: 'textarea', admin: { readOnly: true, hidden: true } },
   ],
   hooks: { beforeDelete: [protectPrivateMedia] },
