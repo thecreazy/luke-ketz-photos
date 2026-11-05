@@ -66,6 +66,16 @@ export const PAGE_COPY = {
     tooMany: ['Message: too many attempts', 'Troppi tentativi. Riprova tra qualche minuto.'],
     private: ['Label in the top bar', 'Galleria privata'],
     open: ['Label when the gallery is open', 'A fuoco'],
+    close: ['Photo viewer: close button', 'Chiudi'],
+    openPhoto: ['Photo viewer: label of a photo you can open', 'Ingrandisci la foto'],
+    prevPhoto: ['Photo viewer: previous photo', 'Foto precedente'],
+    nextPhoto: ['Photo viewer: next photo', 'Foto successiva'],
+    download: ['Photo viewer: download button', 'Scarica'],
+    counter: [
+      'Photo viewer: counter',
+      '{n} / {total}',
+      'Use {n} for the photo number and {total} for how many there are.',
+    ],
     expired: ['Message: gallery expired', 'Questa galleria non è più disponibile. Scrivi a Luke.'],
   },
 } as const satisfies Record<string, Spec>

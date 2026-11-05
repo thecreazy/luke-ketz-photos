@@ -19,12 +19,20 @@ export const s3Client = (): S3Client =>
     },
   }))
 
-export const signPrivateUrl = (filename: string, expiresIn = 3600): Promise<string> =>
+/** A time-limited link to a private file. With `downloadAs` the browser saves it instead of showing it. */
+export const signPrivateUrl = (
+  filename: string,
+  expiresIn = 3600,
+  downloadAs?: string,
+): Promise<string> =>
   getSignedUrl(
     s3Client(),
     new GetObjectCommand({
       Bucket: env.S3_PRIVATE_BUCKET,
       Key: `${PRIVATE_PREFIX}/${filename}`,
+      ResponseContentDisposition: downloadAs
+        ? `attachment; filename*=UTF-8''${encodeURIComponent(downloadAs)}`
+        : undefined,
     }),
     { expiresIn },
   )

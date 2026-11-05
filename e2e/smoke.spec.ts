@@ -258,6 +258,19 @@ test.describe('with a logged-in admin', () => {
       .poll(() => visitor.locator('main img').evaluate((i: HTMLImageElement) => i.naturalWidth))
       .toBeGreaterThan(0)
 
+    // The photo opens full screen and can be saved.
+    await visitor.locator('.shot').first().click()
+    const viewer = visitor.getByRole('dialog')
+    await expect(viewer).toBeVisible()
+    await expect(viewer.getByText('1 / 1')).toBeVisible()
+    const [saved] = await Promise.all([
+      visitor.waitForEvent('download'),
+      viewer.getByRole('link', { name: 'Scarica' }).click(),
+    ])
+    expect(saved.suggestedFilename()).toMatch(/\.jpg$/)
+    await visitor.keyboard.press('Escape')
+    await expect(viewer).toBeHidden()
+
     const after = await (
       await page.request.get(`/api/private-galleries/${gallery.id}`, json)
     ).json()

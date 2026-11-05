@@ -8,6 +8,8 @@ export type PhotoSources = {
   alt: string
   blurDataURL?: string | null
   dominantColor?: string | null
+  /** Private photos: a link that saves the full-size file. */
+  download?: string
 }
 
 // Builds the responsive sources of a Media doc from its stored variants (sm 640, md 1280, full).

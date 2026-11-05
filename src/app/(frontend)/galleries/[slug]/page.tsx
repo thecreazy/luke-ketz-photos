@@ -9,6 +9,7 @@ import { payload } from '@/lib/payload'
 import type { PhotoSources } from '@/lib/photo'
 import { signedPhotoSources } from '@/lib/private-photo'
 import { Faces } from '@/site/Faces'
+import { GalleryViewer } from '@/site/GalleryViewer'
 import { GateRoom } from '@/site/GateRoom'
 import { SiteFooter } from '@/site/SiteFooter'
 import { SiteHeader } from '@/site/SiteHeader'
@@ -76,26 +77,18 @@ async function GalleryView({ params }: Props) {
         <span className="mono accent">{it.open}</span>
         <h1 className="serif big">{gallery.title}</h1>
         {gallery.intro && <p className="serif hint">{gallery.intro}</p>}
-        <div className="stack">
-          {photos.map((p) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={p.src}
-              src={p.src}
-              srcSet={p.srcSet}
-              sizes="(min-width: 1200px) 1200px, 100vw"
-              width={p.width}
-              height={p.height}
-              alt={p.alt || gallery.title}
-              loading="lazy"
-              decoding="async"
-              style={{
-                backgroundImage: p.blurDataURL ? `url("${p.blurDataURL}")` : undefined,
-                backgroundSize: 'cover',
-              }}
-            />
-          ))}
-        </div>
+        <GalleryViewer
+          copy={it}
+          photos={photos.map((p) => ({
+            src: p.src,
+            srcSet: p.srcSet,
+            width: p.width,
+            height: p.height,
+            alt: p.alt || gallery.title,
+            blur: p.blurDataURL,
+            download: p.download,
+          }))}
+        />
       </main>
       <SiteFooter />
     </div>

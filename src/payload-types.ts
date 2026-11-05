@@ -543,6 +543,15 @@ export interface Page {
     tooMany?: string | null;
     private?: string | null;
     open?: string | null;
+    close?: string | null;
+    openPhoto?: string | null;
+    prevPhoto?: string | null;
+    nextPhoto?: string | null;
+    download?: string | null;
+    /**
+     * Use {n} for the photo number and {total} for how many there are.
+     */
+    counter?: string | null;
     expired?: string | null;
   };
   seo?: {
@@ -973,6 +982,12 @@ export interface PagesSelect<T extends boolean = true> {
         tooMany?: T;
         private?: T;
         open?: T;
+        close?: T;
+        openPhoto?: T;
+        prevPhoto?: T;
+        nextPhoto?: T;
+        download?: T;
+        counter?: T;
         expired?: T;
       };
   seo?:

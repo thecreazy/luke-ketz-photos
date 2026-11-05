@@ -13,9 +13,12 @@ export const signedPhotoSources = async (media: PrivateMedia): Promise<PhotoSour
     { filename: media.filename, width: media.width },
   ].filter((v): v is { filename: string; width: number } => Boolean(v.filename && v.width))
 
-  const signed = await Promise.all(
-    variants.map(async (v) => ({ url: await signPrivateUrl(v.filename), width: v.width })),
-  )
+  const [download, signed] = await Promise.all([
+    signPrivateUrl(media.filename, 3600, media.filename),
+    Promise.all(
+      variants.map(async (v) => ({ url: await signPrivateUrl(v.filename), width: v.width })),
+    ),
+  ])
 
   return {
     src:
@@ -25,5 +28,6 @@ export const signedPhotoSources = async (media: PrivateMedia): Promise<PhotoSour
     height: media.height,
     alt: media.alt ?? '',
     blurDataURL: media.blurDataURL,
+    download,
   }
 }

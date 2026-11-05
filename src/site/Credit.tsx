@@ -6,7 +6,6 @@ export function Credit() {
     <a href={CREDIT.url} target="_blank" rel="noopener" className="credit serif">
       <span className="credit-by">{CREDIT.prefix}</span>{' '}
       <span className="credit-name">{CREDIT.name}</span>
-      <span aria-hidden="true"> ↗</span>
     </a>
   )
 }
