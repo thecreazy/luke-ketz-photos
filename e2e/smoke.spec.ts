@@ -210,6 +210,58 @@ test.describe('with a logged-in admin', () => {
     expect(await (await request.get('/galleria-privata')).text()).toContain('Pagina non trovata')
   })
 
+  test('search engines get descriptions, structured data and an image sitemap', async ({
+    page,
+    request,
+  }) => {
+    await created(
+      await page.request.post('/api/globals/site-settings', {
+        ...json,
+        data: { siteName: 'Nome di prova', googleSiteVerification: 'abc123' },
+      }),
+    ).catch(() => undefined)
+
+    const head = async (path: string) => {
+      const html = await (await request.get(path)).text()
+      return {
+        html,
+        description: html.match(/<meta name="description" content="([^"]+)"/)?.[1],
+        ogUrl: html.match(/<meta property="og:url" content="([^"]+)"/)?.[1],
+        types: [...html.matchAll(/"@type":"([A-Za-z]+)"/g)].map((m) => m[1]),
+      }
+    }
+
+    for (const path of ['/', '/ritratti', '/chi-e', '/diario']) {
+      const h = await head(path)
+      expect(h.description, `${path} description`).toBeTruthy()
+      expect(h.ogUrl, `${path} og:url`).toBeTruthy()
+    }
+    expect((await head('/')).html).toContain('<title>Nome di prova — ritrattista concettuale')
+    expect((await head('/')).html).toContain('name="google-site-verification" content="abc123"')
+    expect((await head('/')).types).toEqual(expect.arrayContaining(['WebSite', 'Person']))
+    expect((await head('/chi-e')).types).toContain('ProfilePage')
+    expect((await head('/ritratti')).types).toEqual(
+      expect.arrayContaining(['ImageGallery', 'BreadcrumbList']),
+    )
+
+    const list = await (await request.get('/ritratti')).text()
+    const portrait = list.match(/href="(\/ritratti\/[a-z0-9-]+)"/)?.[1]
+    expect(portrait).toBeTruthy()
+    const p = await head(portrait!)
+    expect(p.description).toBeTruthy()
+    expect(p.types).toEqual(expect.arrayContaining(['ImageObject', 'BreadcrumbList']))
+
+    const diary = await (await request.get('/diario')).text()
+    const post = diary.match(/href="(\/diario\/[a-z0-9-]+)"/)?.[1]
+    const a = await head(post!)
+    expect(a.types).toEqual(expect.arrayContaining(['BlogPosting', 'BreadcrumbList']))
+    expect(a.html).toContain('property="og:type" content="article"')
+
+    const sitemap = await (await request.get('/sitemap.xml')).text()
+    expect(sitemap).toContain('<image:loc>')
+    expect(sitemap).toContain('<lastmod>')
+  })
+
   test('a photo that is still in use cannot be deleted', async ({ page }) => {
     const [first] = (
       await (

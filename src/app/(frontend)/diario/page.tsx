@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 import { getCopy, getPosts } from '@/lib/data'
+import { systemMetadata } from '@/lib/metadata'
 import { photoSources } from '@/lib/photo'
 import { DiaryRoll } from '@/site/DiaryRoll'
 import type { RollFrame } from '@/site/DiaryRoll'
@@ -10,9 +11,7 @@ import { fmt, themeLabels } from '@/site/copy'
 import { SiteFooter } from '@/site/SiteFooter'
 import { SiteHeader } from '@/site/SiteHeader'
 
-export async function generateMetadata(): Promise<Metadata> {
-  return { title: (await getCopy()).titles.diary, alternates: { canonical: '/diario' } }
-}
+export const generateMetadata = (): Promise<Metadata> => systemMetadata('diary')
 
 export default async function Diary() {
   const [posts, copy] = await Promise.all([getPosts(), getCopy()])

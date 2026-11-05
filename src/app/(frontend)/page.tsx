@@ -3,12 +3,14 @@ import type { Metadata } from 'next'
 import { JsonLd } from '@/components/JsonLd'
 import { getAbout, getCopy, getMenu, getNavPages, getPortraits, getSettings } from '@/lib/data'
 import { env } from '@/lib/env'
+import { person } from '@/lib/jsonld'
+import { systemMetadata } from '@/lib/metadata'
 import { photoSources } from '@/lib/photo'
 import { HomeField } from '@/site/HomeField'
 import type { FieldCard } from '@/site/HomeField'
 import { fmt } from '@/site/copy'
 
-export const metadata: Metadata = { alternates: { canonical: '/' } }
+export const generateMetadata = (): Promise<Metadata> => systemMetadata('home')
 
 // x, y, width and depth on the 1440x900 reference frame (0 near … 1 far).
 const SLOTS: [number, number, number, number][] = [
@@ -95,11 +97,14 @@ export default async function Home() {
           name: s.siteName,
           url: env.NEXT_PUBLIC_SITE_URL,
           inLanguage: 'it',
-          author: {
-            '@type': 'Person',
+          description: s.description ?? undefined,
+          author: person({
             name: s.siteName,
-            sameAs: s.instagram ? [s.instagram] : undefined,
-          },
+            jobTitle: s.jobTitle,
+            instagram: s.instagram,
+            description: s.description,
+            image: aboutSrc?.src,
+          }),
         }}
       />
       <HomeField

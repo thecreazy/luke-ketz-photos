@@ -32,6 +32,11 @@ export const PAGE_COPY = {
       'Used when a photo has no description of its own. {n} is the portrait number.',
     ],
     empty: ['Text when there are no portraits', 'I primi ritratti arrivano presto.'],
+    metaDescription: [
+      'Search result text of a portrait without a note',
+      '{question} Ritratto N° {n} di {siteName}.',
+      'Shown by search engines under the title. {question}, {n} and {siteName} are filled in.',
+    ],
     back: ['Portrait page: back link when opened directly', '← Torna nel campo'],
     backPrev: ['Portrait page: back link when coming from the site', '← Indietro'],
     prev: ['Portrait page: previous', '← Volto precedente'],
@@ -100,6 +105,23 @@ export const SYSTEM_TEXT = {
     home: 'Torna nel campo',
   },
   error: { title: 'Qualcosa è andato storto', text: 'Riprova tra un momento.', retry: 'Riprova' },
+}
+
+// What search engines show for the main pages when their SEO fields (Pages → SEO) are empty.
+export const DEFAULT_SEO = {
+  home: {
+    title: '{siteName} — ritrattista concettuale · Piacenza',
+    description:
+      '{siteName}, ritrattista concettuale a Piacenza. Un campo di volti, ognuno con la sua domanda.',
+  },
+  portraits: {
+    description: 'I ritratti di {siteName}: ogni volto con la sua domanda. Filtra per serie.',
+  },
+  about: {
+    description:
+      '{siteName} racconta storie intime con una semplicità disarmante. Come nasce un ritratto, mostre e contatti.',
+  },
+  diary: { description: 'Il diario di {siteName}: quello che succede prima e dopo lo scatto.' },
 }
 
 /** Fills the placeholders of a template: fmt('{n} min', { n: 5 }) → "5 min". */

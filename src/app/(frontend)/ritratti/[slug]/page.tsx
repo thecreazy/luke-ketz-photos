@@ -3,9 +3,11 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 
+import { JsonLd } from '@/components/JsonLd'
 import { getCopy, getPortraits, getPortraitSlugs, getSettings } from '@/lib/data'
 import { photoSources } from '@/lib/photo'
 import { staticSlugParams } from '@/lib/static-params'
+import { absolute, breadcrumb, person } from '@/lib/jsonld'
 import { defaultOgImage, seoMetadata } from '@/lib/metadata'
 import { fmt } from '@/site/copy'
 import { Parallax } from '@/site/Parallax'
@@ -24,9 +26,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const found = (await getPortraits()).find((p) => p.doc.slug === slug)
   if (!found) return {}
   const { doc, n } = found
-  const title =
-    doc.question || fmt((await getCopy()).portraits.alt, { n: String(n).padStart(2, '0') })
-  return seoMetadata(title, doc.seo, doc.note, `/ritratti/${doc.slug}`, await defaultOgImage())
+  const [copy, settings] = await Promise.all([getCopy(), getSettings()])
+  const title = doc.question || fmt(copy.portraits.alt, { n: String(n).padStart(2, '0') })
+  const description =
+    doc.note ||
+    fmt(copy.portraits.metaDescription, {
+      question: doc.question ?? '',
+      n,
+      siteName: settings.siteName,
+    }).trim()
+  return seoMetadata(title, doc.seo, description, `/ritratti/${doc.slug}`, await defaultOgImage())
 }
 
 async function PortraitView({ params }: Props) {
@@ -49,6 +58,28 @@ async function PortraitView({ params }: Props) {
 
   return (
     <div className="field glow portrait">
+      <JsonLd
+        data={[
+          {
+            '@context': 'https://schema.org',
+            '@type': 'ImageObject',
+            contentUrl: photo.src,
+            thumbnailUrl: photo.srcSet.split(' ')[0],
+            width: photo.width,
+            height: photo.height,
+            name: doc.question || fmt(it.alt, { n }),
+            caption: doc.note || undefined,
+            creator: person({ name: settings.siteName }),
+            datePublished: doc.createdAt,
+            url: absolute(`/ritratti/${doc.slug}`),
+          },
+          breadcrumb([
+            ['Home', '/'],
+            [copy.titles.portraits, '/ritratti'],
+            [doc.question || fmt(it.alt, { n }), `/ritratti/${doc.slug}`],
+          ]),
+        ]}
+      />
       <Parallax className="field-layer fixed">
         <Faces images={others} slots="detail" />
       </Parallax>

@@ -3,8 +3,9 @@ import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 
 import { JsonLd } from '@/components/JsonLd'
-import { getPortraits, getPost, getPosts, getPostSlugs, getSettings } from '@/lib/data'
+import { getCopy, getPortraits, getPost, getPosts, getPostSlugs, getSettings } from '@/lib/data'
 import { env } from '@/lib/env'
+import { breadcrumb } from '@/lib/jsonld'
 import { defaultOgImage, seoMetadata } from '@/lib/metadata'
 import { staticSlugParams } from '@/lib/static-params'
 import { ArticleCampo, ArticleDietro, ArticleDomande, ArticleFotoracconto } from '@/site/articles'
@@ -25,16 +26,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     p.excerpt,
     `/diario/${p.slug}`,
     cover ?? (await defaultOgImage()),
+    { article: { publishedTime: p.publishedAt, modifiedTime: p.updatedAt } },
   )
 }
 
 async function ArticleView({ params }: Props) {
   const slug = (await params).slug
-  const [post, posts, portraits, s] = await Promise.all([
+  const [post, posts, portraits, s, copy] = await Promise.all([
     getPost(slug),
     getPosts(),
     getPortraits(),
     getSettings(),
+    getCopy(),
   ])
   if (!post) notFound()
 
@@ -51,17 +54,24 @@ async function ArticleView({ params }: Props) {
   return (
     <>
       <JsonLd
-        data={{
-          '@context': 'https://schema.org',
-          '@type': 'BlogPosting',
-          headline: post.title,
-          description: post.excerpt ?? undefined,
-          image: cover,
-          datePublished: post.publishedAt ?? undefined,
-          dateModified: post.updatedAt,
-          mainEntityOfPage: `${env.NEXT_PUBLIC_SITE_URL}/diario/${post.slug}`,
-          author: { '@type': 'Person', name: s.siteName },
-        }}
+        data={[
+          breadcrumb([
+            ['Home', '/'],
+            [copy.titles.diary, '/diario'],
+            [post.title, `/diario/${post.slug}`],
+          ]),
+          {
+            '@context': 'https://schema.org',
+            '@type': 'BlogPosting',
+            headline: post.title,
+            description: post.excerpt ?? undefined,
+            image: cover,
+            datePublished: post.publishedAt ?? undefined,
+            dateModified: post.updatedAt,
+            mainEntityOfPage: `${env.NEXT_PUBLIC_SITE_URL}/diario/${post.slug}`,
+            author: { '@type': 'Person', name: s.siteName },
+          },
+        ]}
       />
       {post.layout === 'fotoracconto' ? (
         <ArticleFotoracconto {...view} />

@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 
+import { JsonLd } from '@/components/JsonLd'
 import { getCopy, getPortraits, getSeries } from '@/lib/data'
+import { absolute, breadcrumb } from '@/lib/jsonld'
+import { systemMetadata } from '@/lib/metadata'
 import { photoSources } from '@/lib/photo'
 import { fmt } from '@/site/copy'
 import { PortraitGrid } from '@/site/PortraitGrid'
@@ -8,9 +11,7 @@ import type { GridItem } from '@/site/PortraitGrid'
 import { SiteFooter } from '@/site/SiteFooter'
 import { SiteHeader } from '@/site/SiteHeader'
 
-export async function generateMetadata(): Promise<Metadata> {
-  return { title: (await getCopy()).titles.portraits, alternates: { canonical: '/ritratti' } }
-}
+export const generateMetadata = (): Promise<Metadata> => systemMetadata('portraits')
 
 export default async function Portraits() {
   const [portraits, series, copy] = await Promise.all([getPortraits(), getSeries(), getCopy()])
@@ -35,6 +36,26 @@ export default async function Portraits() {
 
   return (
     <div className="page">
+      <JsonLd
+        data={[
+          {
+            '@context': 'https://schema.org',
+            '@type': 'ImageGallery',
+            name: copy.titles.portraits,
+            url: absolute('/ritratti'),
+            associatedMedia: items.slice(0, 24).map((i) => ({
+              '@type': 'ImageObject',
+              contentUrl: i.src,
+              name: i.question || i.alt,
+              url: absolute(`/ritratti/${i.slug}`),
+            })),
+          },
+          breadcrumb([
+            ['Home', '/'],
+            [copy.titles.portraits, '/ritratti'],
+          ]),
+        ]}
+      />
       <SiteHeader current="ritratti" />
       <main className="wrap">
         <h1 className="serif big">{copy.titles.portraits}</h1>

@@ -52,6 +52,18 @@ export async function getCopy() {
   }
 }
 
+/** What the editor wrote in the SEO fields of a main page (empty fields are undefined). */
+export async function getPageSeo(kind: 'home' | 'portraits' | 'about' | 'diary') {
+  cacheTag('pages', 'media')
+  cacheLife('max')
+  const seo = (await systemPages()).find((d) => d.kind === kind)?.seo
+  return {
+    title: seo?.title || undefined,
+    description: seo?.description || undefined,
+    image: seo?.image && typeof seo.image === 'object' ? (seo.image.url ?? undefined) : undefined,
+  }
+}
+
 /** The "Chi è" page content (title, texts, portrait). */
 export async function getAbout() {
   cacheTag('pages', 'media')
@@ -231,21 +243,46 @@ export async function getPostSlugs() {
 
 // Every public URL with its last edit, for the sitemap.
 export async function getSitemapEntries() {
-  cacheTag('pages', 'portraits', 'posts')
+  cacheTag('pages', 'portraits', 'posts', 'media')
   cacheLife('max')
   const p = await payload()
-  const find = (collection: 'pages' | 'portraits' | 'posts', extra = {}) =>
+  const textPages = { or: [{ kind: { equals: 'text' } }, { kind: { exists: false } }] }
+  const [pages, system, portraits, posts] = await Promise.all([
     p.find({
-      collection,
+      collection: 'pages',
       depth: 0,
       pagination: false,
       select: { slug: true, updatedAt: true },
-      where: { ...published, ...extra },
-    })
-  const [pages, portraits, posts] = await Promise.all([
-    find('pages', { or: [{ kind: { equals: 'text' } }, { kind: { exists: false } }] }),
-    find('portraits'),
-    find('posts'),
+      where: { ...published, ...textPages },
+    }),
+    p.find({
+      collection: 'pages',
+      depth: 0,
+      pagination: false,
+      select: { slug: true, updatedAt: true },
+      where: { ...published, kind: { in: ['home', 'about', 'portraits', 'diary'] } },
+    }),
+    p.find({
+      collection: 'portraits',
+      depth: 1,
+      pagination: false,
+      select: { slug: true, updatedAt: true, image: true },
+      where: published,
+    }),
+    p.find({
+      collection: 'posts',
+      depth: 1,
+      pagination: false,
+      select: { slug: true, updatedAt: true, cover: true },
+      where: published,
+    }),
   ])
-  return { pages: pages.docs, portraits: portraits.docs, posts: posts.docs }
+  const url = (m: unknown) =>
+    m && typeof m === 'object' && 'url' in m ? ((m as { url?: string | null }).url ?? null) : null
+  return {
+    pages: pages.docs,
+    system: Object.fromEntries(system.docs.map((d) => [d.slug, d.updatedAt])),
+    portraits: portraits.docs.map((d) => ({ ...d, imageUrl: url(d.image) })),
+    posts: posts.docs.map((d) => ({ ...d, imageUrl: url(d.cover) })),
+  }
 }

@@ -497,6 +497,10 @@ export interface Page {
      */
     alt?: string | null;
     empty?: string | null;
+    /**
+     * Shown by search engines under the title. {question}, {n} and {siteName} are filled in.
+     */
+    metaDescription?: string | null;
     back?: string | null;
     backPrev?: string | null;
     prev?: string | null;
@@ -944,6 +948,7 @@ export interface PagesSelect<T extends boolean = true> {
         aria?: T;
         alt?: T;
         empty?: T;
+        metaDescription?: T;
         back?: T;
         backPrev?: T;
         prev?: T;
@@ -1199,6 +1204,18 @@ export interface SiteSetting {
    * Shown after "© year name" at the bottom of every page.
    */
   footerNote?: string | null;
+  /**
+   * Shown in the structured data of the home and the About page.
+   */
+  jobTitle?: string | null;
+  /**
+   * Only the code of the "HTML tag" verification, not the whole tag.
+   */
+  googleSiteVerification?: string | null;
+  /**
+   * Only the code of the verification meta tag.
+   */
+  bingSiteVerification?: string | null;
   ogImage?: (number | null) | Media;
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -1214,6 +1231,9 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   email?: T;
   instagram?: T;
   footerNote?: T;
+  jobTitle?: T;
+  googleSiteVerification?: T;
+  bingSiteVerification?: T;
   ogImage?: T;
   updatedAt?: T;
   createdAt?: T;

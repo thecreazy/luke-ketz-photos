@@ -34,6 +34,11 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
     title: { default: s.siteName, template: `%s — ${s.siteName}` },
     description: s.description ?? undefined,
+    verification: {
+      google: s.googleSiteVerification || undefined,
+      other: s.bingSiteVerification ? { 'msvalidate.01': s.bingSiteVerification } : undefined,
+    },
+    twitter: { card: 'summary_large_image', images: [ogImage] },
     openGraph: {
       siteName: s.siteName,
       type: 'website',

@@ -1,24 +1,25 @@
 import type { MetadataRoute } from 'next'
 
 import { getSitemapEntries } from '@/lib/data'
-import { env } from '@/lib/env'
+import { absolute } from '@/lib/jsonld'
 
-// Private galleries are intentionally absent.
+// Private galleries are intentionally absent. Photos are listed with their pages so that search
+// engines can show them in image results.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const { pages, portraits, posts } = await getSitemapEntries()
-  const url = (path: string) => `${env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '')}${path}`
-  const entry = (path: string, d: { updatedAt: string }) => ({
-    url: url(path),
-    lastModified: d.updatedAt,
+  const { pages, system, portraits, posts } = await getSitemapEntries()
+  const entry = (path: string, lastModified?: string, image?: string | null) => ({
+    url: absolute(path),
+    lastModified,
+    images: image ? [image] : undefined,
   })
 
   return [
-    { url: url('/') },
-    { url: url('/chi-e') },
-    { url: url('/ritratti') },
-    { url: url('/diario') },
-    ...pages.map((d) => entry(`/${d.slug}`, d)),
-    ...portraits.map((d) => entry(`/ritratti/${d.slug}`, d)),
-    ...posts.map((d) => entry(`/diario/${d.slug}`, d)),
+    entry('/', system['home']),
+    entry('/chi-e', system['chi-e']),
+    entry('/ritratti', system['ritratti']),
+    entry('/diario', system['diario']),
+    ...pages.map((d) => entry(`/${d.slug}`, d.updatedAt)),
+    ...portraits.map((d) => entry(`/ritratti/${d.slug}`, d.updatedAt, d.imageUrl)),
+    ...posts.map((d) => entry(`/diario/${d.slug}`, d.updatedAt, d.imageUrl)),
   ]
 }

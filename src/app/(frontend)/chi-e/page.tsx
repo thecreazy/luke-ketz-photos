@@ -1,16 +1,18 @@
 import type { Metadata } from 'next'
 import React from 'react'
 
-import { getAbout, getCopy, getPortraits, getSettings } from '@/lib/data'
+import { JsonLd } from '@/components/JsonLd'
+
+import { getAbout, getPortraits, getSettings } from '@/lib/data'
+import { absolute, person } from '@/lib/jsonld'
+import { systemMetadata } from '@/lib/metadata'
 import { photoSources } from '@/lib/photo'
 import { Faces } from '@/site/Faces'
 import { Parallax } from '@/site/Parallax'
 import { SiteFooter } from '@/site/SiteFooter'
 import { SiteHeader } from '@/site/SiteHeader'
 
-export async function generateMetadata(): Promise<Metadata> {
-  return { title: (await getCopy()).titles.about, alternates: { canonical: '/chi-e' } }
-}
+export const generateMetadata = (): Promise<Metadata> => systemMetadata('about')
 
 // "*word*" in the title is shown in italic.
 const emphasise = (text: string) =>
@@ -27,6 +29,20 @@ export default async function About() {
 
   return (
     <div className="field glow about page">
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'ProfilePage',
+          url: absolute('/chi-e'),
+          mainEntity: person({
+            name: s.siteName,
+            jobTitle: s.jobTitle,
+            instagram: s.instagram,
+            description: a.intro?.find((b) => b.style !== 'quote')?.text ?? s.description,
+            image: luke?.src,
+          }),
+        }}
+      />
       <Parallax className="field-layer fixed">
         <Faces images={portraits.slice(0, 8).map((p) => p.doc.image)} slots="margin" soften={2} />
       </Parallax>
