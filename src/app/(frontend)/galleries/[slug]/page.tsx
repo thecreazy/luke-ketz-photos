@@ -47,10 +47,10 @@ async function GalleryView({ params }: Props) {
       <div className="field glow room">
         <div className="field-layer">{faces}</div>
         <div className="room-veil" aria-hidden="true" />
-        <div className="gate">
+        <main id="main" tabIndex={-1} className="gate">
           <span className="mono muted">{gallery.title}</span>
           <p className="serif question">{it.expired}</p>
-        </div>
+        </main>
       </div>
     )
   }
@@ -73,7 +73,7 @@ async function GalleryView({ params }: Props) {
   return (
     <div className="page">
       <SiteHeader />
-      <main className="wrap private-gallery">
+      <main id="main" tabIndex={-1} className="wrap private-gallery">
         <span className="mono accent">{it.open}</span>
         <h1 className="serif big">{gallery.title}</h1>
         {gallery.intro && <p className="serif hint">{gallery.intro}</p>}

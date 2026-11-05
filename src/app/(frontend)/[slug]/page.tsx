@@ -29,7 +29,7 @@ async function PageView({ params }: Props) {
   return (
     <div className="page">
       <SiteHeader />
-      <main className="col">
+      <main id="main" tabIndex={-1} className="col">
         <h1 className="serif big">{pg.title}</h1>
         <div className="prose body">
           <Rich data={pg.content} />

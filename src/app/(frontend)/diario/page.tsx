@@ -42,7 +42,7 @@ export default async function Diary() {
   return (
     <div className="page">
       <SiteHeader current="diario" />
-      <main>
+      <main id="main" tabIndex={-1}>
         <section className="wrap diary-intro">
           <h1 className="serif big">{copy.titles.diary}</h1>
           <span className="mono muted">{it.subtitle}</span>

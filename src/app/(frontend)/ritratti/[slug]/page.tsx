@@ -85,14 +85,14 @@ async function PortraitView({ params }: Props) {
       </Parallax>
       <div className="vignette" aria-hidden="true" />
 
-      <div className="top over">
+      <header className="top over">
         <Link href="/" className="serif logo">
           {settings.siteName}
         </Link>
         <BackLink label={it.back} backLabel={it.backPrev} />
-      </div>
+      </header>
 
-      <main className="portrait-main">
+      <main id="main" tabIndex={-1} className="portrait-main">
         <figure className="hero">
           <ViewTransition name={`portrait-${doc.slug}`} share="morph" default="none">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -129,7 +129,7 @@ async function PortraitView({ params }: Props) {
         </div>
       </main>
 
-      <div className="portrait-bottom">
+      <footer className="portrait-bottom">
         <div className="steps">
           <Link href={`/ritratti/${prev.slug}`} className="mono step" rel="prev">
             {it.prev}
@@ -142,7 +142,7 @@ async function PortraitView({ params }: Props) {
           </Link>
         </div>
         <SiteMenu current="ritratti" />
-      </div>
+      </footer>
     </div>
   )
 }

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import React from 'react'
 
 import { Rich } from '@/components/Rich'
-import { getCopy } from '@/lib/data'
+import { getCopy, getSettings } from '@/lib/data'
 import { photoSources } from '@/lib/photo'
 import type { Media, Post } from '@/payload-types'
 
@@ -79,7 +79,7 @@ export async function ArticleCampo({ post, next, faces }: Props) {
       </Parallax>
       <div className="vignette" aria-hidden="true" />
       <SiteHeader current="diario" />
-      <main className="col">
+      <main id="main" tabIndex={-1} className="col">
         <span className="mono accent">{kicker(it, post)}</span>
         <h1 className="serif big">{post.title}</h1>
         <div className="prose body">
@@ -131,7 +131,7 @@ export async function ArticleFotoracconto({ post, next }: Props) {
         </div>
       </header>
 
-      <main>
+      <main id="main" tabIndex={-1}>
         {post.intro && <p className="col body lead">{post.intro}</p>}
         {post.sections?.map((s) => {
           const photos = s.photos ?? []
@@ -176,7 +176,7 @@ export async function ArticleDomande({ post, next }: Props) {
   return (
     <div className="page">
       <SiteHeader current="diario" />
-      <main className="wrap qa-page">
+      <main id="main" tabIndex={-1} className="wrap qa-page">
         <span className="mono accent">{kicker(it, post)}</span>
         <h1 className="serif big">{post.title}</h1>
         {post.intro && <p className="body lead">{post.intro}</p>}
@@ -201,7 +201,8 @@ export async function ArticleDomande({ post, next }: Props) {
 
 // D · Dietro lo scatto: one photograph on the left, its story as a timeline on the right.
 export async function ArticleDietro({ post, next }: Props) {
-  const it = (await getCopy()).diary
+  const [copy, settings] = await Promise.all([getCopy(), getSettings()])
+  const it = copy.diary
   const chips =
     post.exifLine
       ?.split('·')
@@ -218,7 +219,7 @@ export async function ArticleDietro({ post, next }: Props) {
         />
         <div className="b-shade" aria-hidden="true" />
         <Link href="/" className="serif logo">
-          Luke Ketz
+          {settings.siteName}
         </Link>
         {chips.length > 0 && (
           <div className="chips-row">
@@ -231,7 +232,7 @@ export async function ArticleDietro({ post, next }: Props) {
         )}
       </aside>
 
-      <div className="d-col">
+      <main id="main" tabIndex={-1} className="d-col">
         <SiteMenu current="diario" />
         <span className="mono accent">{kicker(it, post)}</span>
         <h1 className="serif big">{post.title}</h1>
@@ -268,7 +269,7 @@ export async function ArticleDietro({ post, next }: Props) {
         </ol>
         <NextPage next={next} it={it} />
         <SiteFooter />
-      </div>
+      </main>
     </div>
   )
 }

@@ -50,7 +50,7 @@ button {
   color: inherit;
 }
 :focus-visible {
-  outline: 1px solid var(--accent);
+  outline: 2px solid var(--accent);
   outline-offset: 4px;
 }
 .skip {
@@ -59,10 +59,15 @@ button {
 }
 .skip:focus {
   left: var(--pad);
+  color: var(--fg);
   top: 8px;
   z-index: 100;
   background: var(--bg);
   padding: 8px 12px;
+}
+
+main:focus {
+  outline: none;
 }
 
 /* Type */
@@ -375,6 +380,7 @@ button {
   bottom: 30px;
   z-index: 70;
   display: flex;
+  flex-direction: row-reverse;
   justify-content: space-between;
   align-items: flex-end;
   gap: 40px;
@@ -408,6 +414,10 @@ button {
   letter-spacing: 0;
   color: var(--muted);
   transition: color 0.3s;
+}
+/* The footer links are flex boxes (for the touch target), which drops the space between the words. */
+.credit {
+  gap: 0.3em;
 }
 .credit-name {
   color: var(--sub);
@@ -469,7 +479,7 @@ button {
   }
   .home-bottom {
     bottom: 22px;
-    flex-direction: column-reverse;
+    flex-direction: column;
     align-items: flex-start;
     gap: 14px;
   }
@@ -1760,9 +1770,15 @@ button {
       animation-range: entry 5% entry 55%;
     }
     .fr {
-      animation: reveal linear both;
+      animation: reveal-x linear both;
       animation-timeline: view(inline);
       animation-range: entry 0% entry 60%;
+    }
+    @keyframes reveal-x {
+      from {
+        translate: 28px 0;
+        scale: 0.96;
+      }
     }
     @keyframes reveal {
       from {

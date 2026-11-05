@@ -6,6 +6,7 @@ import { getSettings } from '@/lib/data'
 import { env } from '@/lib/env'
 import { defaultOgImage } from '@/lib/metadata'
 import { NavTracker } from '@/site/BackLink'
+import { SYSTEM_TEXT } from '@/site/copy'
 import '@/site/site.css'
 
 const script = Nothing_You_Could_Do({
@@ -52,6 +53,9 @@ export default function FrontendLayout({ children }: { children: React.ReactNode
   return (
     <html lang="it" className={`${script.variable} ${body.variable} ${mono.variable}`}>
       <body>
+        <a className="skip" href="#main">
+          {SYSTEM_TEXT.skip}
+        </a>
         <Suspense fallback={null}>
           <NavTracker />
         </Suspense>

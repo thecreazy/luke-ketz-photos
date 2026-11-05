@@ -49,7 +49,7 @@ export default async function About() {
       <div className="vignette" aria-hidden="true" />
       <SiteHeader current="chi-e" />
 
-      <main className="about-main" data-solo={luke ? undefined : ''}>
+      <main id="main" tabIndex={-1} className="about-main" data-solo={luke ? undefined : ''}>
         {luke && (
           <figure className="emerge-wrap">
             {/* eslint-disable-next-line @next/next/no-img-element */}

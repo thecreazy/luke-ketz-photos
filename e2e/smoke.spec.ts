@@ -437,6 +437,24 @@ test('the maker signs the footer of the pages and the home, with a link to their
   }
 })
 
+test('keyboard users can skip to the content and every page has a main landmark', async ({
+  page,
+  request,
+}) => {
+  await page.goto('/chi-e')
+  await page.keyboard.press('Tab')
+  const skip = page.getByRole('link', { name: 'Vai al contenuto' })
+  await expect(skip).toBeFocused()
+  await expect(skip).toBeVisible()
+  await page.keyboard.press('Enter')
+  await expect(page.locator('main#main')).toBeFocused()
+
+  for (const path of ['/', '/ritratti', '/chi-e', '/diario']) {
+    const html = await (await request.get(path)).text()
+    expect(html.match(/<main[ >]/g)?.length, `${path} has one main`).toBe(1)
+  }
+})
+
 test('security headers: CSP on the public site only', async ({ request }) => {
   const site = await request.get('/')
   expect(site.headers()['content-security-policy']).toContain("frame-ancestors 'none'")

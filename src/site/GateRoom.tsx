@@ -33,16 +33,16 @@ export function GateRoom({
       <div className="field-layer">{children}</div>
       <div className="room-veil" aria-hidden="true" />
 
-      <div className="top over">
+      <header className="top over">
         <Link href="/" className="serif logo">
           {siteName}
         </Link>
         <span className="mono muted">
           {it.private} · {title}
         </span>
-      </div>
+      </header>
 
-      <div className="gate">
+      <main id="main" tabIndex={-1} className="gate">
         <span className="mono muted">{it.kicker}</span>
         <h1 className="serif question">{it.title}</h1>
         <p className="serif hint">{it.hint}</p>
@@ -69,7 +69,7 @@ export function GateRoom({
             {state.error}
           </p>
         )}
-      </div>
+      </main>
     </div>
   )
 }

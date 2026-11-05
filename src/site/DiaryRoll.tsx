@@ -82,9 +82,16 @@ export function DiaryRoll({ frames, copy: it }: { frames: RollFrame[]; copy: Cop
         </div>
       </div>
 
-      <div className="track" ref={track} onScroll={onScroll} tabIndex={0} role="list">
+      <div
+        className="track"
+        ref={track}
+        onScroll={onScroll}
+        tabIndex={0}
+        role="group"
+        aria-label={it.roll}
+      >
         {list.map((f, i) => (
-          <Link key={f.slug} href={`/diario/${f.slug}`} className="fr" role="listitem">
+          <Link key={f.slug} href={`/diario/${f.slug}`} className="fr">
             <span className="holes" aria-hidden="true">
               {Array.from({ length: 8 }, (_, k) => (
                 <span key={k} />

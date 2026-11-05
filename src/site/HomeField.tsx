@@ -87,7 +87,9 @@ export function HomeField({
   }
 
   return (
-    <div
+    <main
+      id="main"
+      tabIndex={-1}
       ref={ref}
       className="field glow home"
       data-hover={cur ? '' : undefined}
@@ -99,6 +101,51 @@ export function HomeField({
         if (!(e.target as HTMLElement).closest('a')) choose(null)
       }}
     >
+      <div className="home-top">
+        <Link href="/" className="serif logo">
+          {siteName}
+        </Link>
+        <span className="count mono">{fmt(it.counter, { faces, questions })}</span>
+      </div>
+
+      <div className="home-center">
+        <span className="kicker mono">
+          {cur ? (cur.about ? it.aboutCard : it.question) : it.kicker}
+        </span>
+        <h1
+          key={cur ? cur.question : defaultQuestion}
+          className={`serif question${changed ? ' swap' : ''}`}
+          aria-live="polite"
+        >
+          {cur ? cur.question : defaultQuestion}
+        </h1>
+        <svg className="stroke" aria-hidden="true" viewBox="0 0 420 26">
+          <path
+            d="M4 18 C 80 6, 170 22, 250 12 S 380 8, 416 16"
+            fill="none"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+        </svg>
+      </div>
+
+      <div className="home-bottom">
+        {/* The menu comes first in the tab order; row-reverse keeps it on the right. */}
+        <SiteNav items={menu} />
+        <div className="home-left">
+          <span className="hint mono">{it.hint}</span>
+          <nav className="legal mono" aria-label="Informazioni">
+            {legal.map((l) => (
+              <Link key={l.id} href={`/${l.slug}`}>
+                {l.title}
+              </Link>
+            ))}
+            <Credit />
+          </nav>
+        </div>
+      </div>
+
+      {/* The faces come last in the reading and tab order: the logo and the menu first. */}
       <div className="field-layer">
         {cards.map((c, i) => {
           const on = active === i
@@ -176,34 +223,6 @@ export function HomeField({
 
       <div className="vignette" aria-hidden="true" />
 
-      <div className="home-top">
-        <Link href="/" className="serif logo">
-          {siteName}
-        </Link>
-        <span className="count mono">{fmt(it.counter, { faces, questions })}</span>
-      </div>
-
-      <div className="home-center">
-        <span className="kicker mono">
-          {cur ? (cur.about ? it.aboutCard : it.question) : it.kicker}
-        </span>
-        <h1
-          key={cur ? cur.question : defaultQuestion}
-          className={`serif question${changed ? ' swap' : ''}`}
-          aria-live="polite"
-        >
-          {cur ? cur.question : defaultQuestion}
-        </h1>
-        <svg className="stroke" aria-hidden="true" viewBox="0 0 420 26">
-          <path
-            d="M4 18 C 80 6, 170 22, 250 12 S 380 8, 416 16"
-            fill="none"
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-        </svg>
-      </div>
-
       <div className="depth mono" aria-hidden="true">
         <span>{it.near}</span>
         <div className="rail">
@@ -211,21 +230,6 @@ export function HomeField({
         </div>
         <span>{it.far}</span>
       </div>
-
-      <div className="home-bottom">
-        <div className="home-left">
-          <span className="hint mono">{it.hint}</span>
-          <nav className="legal mono" aria-label="Informazioni">
-            {legal.map((l) => (
-              <Link key={l.id} href={`/${l.slug}`}>
-                {l.title}
-              </Link>
-            ))}
-            <Credit />
-          </nav>
-        </div>
-        <SiteNav items={menu} />
-      </div>
-    </div>
+    </main>
   )
 }

@@ -57,7 +57,7 @@ export default async function Portraits() {
         ]}
       />
       <SiteHeader current="ritratti" />
-      <main className="wrap">
+      <main id="main" tabIndex={-1} className="wrap">
         <h1 className="serif big">{copy.titles.portraits}</h1>
         {items.length === 0 ? (
           <p className="muted body">{it.empty}</p>

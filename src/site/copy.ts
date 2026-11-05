@@ -99,6 +99,7 @@ export const DEFAULT_COPY = Object.fromEntries(
 
 // Technical pages: shown when something breaks, so they stay in the code.
 export const SYSTEM_TEXT = {
+  skip: 'Vai al contenuto',
   notFound: {
     title: 'Pagina non trovata',
     text: 'Questa pagina non esiste o è stata spostata.',
