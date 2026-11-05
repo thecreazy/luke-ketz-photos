@@ -6,16 +6,20 @@ import { useActionState, useState } from 'react'
 
 import { unlock } from '@/app/(frontend)/galleries/[slug]/actions'
 
-import { it } from './it'
+import type { Copy } from './copy'
 
 // The locked gallery: faces out of focus that sharpen as the password is typed.
 export function GateRoom({
   slug,
   title,
+  siteName,
+  copy: it,
   children,
 }: {
   slug: string
   title: string
+  siteName: string
+  copy: Copy['gate']
   children: ReactNode
 }) {
   const [state, action, pending] = useActionState(unlock.bind(null, slug), undefined)
@@ -31,20 +35,20 @@ export function GateRoom({
 
       <div className="top over">
         <Link href="/" className="serif logo">
-          Luke Ketz
+          {siteName}
         </Link>
         <span className="mono muted">
-          {it.gallery.private} · {title}
+          {it.private} · {title}
         </span>
       </div>
 
       <div className="gate">
-        <span className="mono muted">{it.gallery.kicker}</span>
-        <h1 className="serif question">{it.gallery.title}</h1>
-        <p className="serif hint">{it.gallery.hint}</p>
+        <span className="mono muted">{it.kicker}</span>
+        <h1 className="serif question">{it.title}</h1>
+        <p className="serif hint">{it.hint}</p>
         <form action={action} key={state?.n} className={state?.error ? 'shake' : undefined}>
           <label htmlFor="pw" className="mono muted">
-            {it.gallery.label}
+            {it.label}
           </label>
           <input
             id="pw"
@@ -53,11 +57,11 @@ export function GateRoom({
             autoComplete="off"
             required
             autoFocus
-            placeholder={it.gallery.placeholder}
+            placeholder={it.placeholder}
             onChange={(e) => setLength(e.target.value.length)}
           />
           <button type="submit" className="mono" disabled={pending}>
-            {it.gallery.submit}
+            {it.submit}
           </button>
         </form>
         {state?.error && (

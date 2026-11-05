@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 
 import { JsonLd } from '@/components/JsonLd'
-import { getAbout, getNavPages, getPortraits, getSettings } from '@/lib/data'
+import { getAbout, getCopy, getMenu, getNavPages, getPortraits, getSettings } from '@/lib/data'
 import { env } from '@/lib/env'
 import { photoSources } from '@/lib/photo'
 import { HomeField } from '@/site/HomeField'
 import type { FieldCard } from '@/site/HomeField'
-import { it } from '@/site/it'
+import { fmt } from '@/site/copy'
 
 export const metadata: Metadata = { alternates: { canonical: '/' } }
 
@@ -45,11 +45,13 @@ const MOBILE_SLOTS: [number, number, number][] = [
 ]
 
 export default async function Home() {
-  const [portraits, s, about, legal] = await Promise.all([
+  const [portraits, s, about, legal, it, menu] = await Promise.all([
     getPortraits(),
     getSettings(),
     getAbout(),
     getNavPages(),
+    getCopy(),
+    getMenu(),
   ])
 
   const withQuestion = portraits.filter((p) => p.doc.question)
@@ -69,7 +71,7 @@ export default async function Home() {
         href: isAbout ? '/chi-e' : `/ritratti/${p.doc.slug}`,
         src: src.src,
         srcSet: src.srcSet,
-        alt: isAbout ? 'Ritratto di Luke Ketz' : it.portraits.alt(p.n),
+        alt: isAbout ? `Ritratto di ${s.siteName}` : fmt(it.portraits.alt, { n: p.n }),
         tag: isAbout ? it.home.aboutCard : `N° ${String(p.n).padStart(2, '0')}`,
         about: isAbout,
         question: isAbout ? it.home.aboutQuestion : (p.doc.question ?? ''),
@@ -103,7 +105,9 @@ export default async function Home() {
       <HomeField
         cards={cards}
         siteName={s.siteName}
-        defaultQuestion={s.tagline || it.home.fallbackQuestion}
+        defaultQuestion={it.home.defaultQuestion}
+        copy={it.home}
+        menu={menu}
         faces={portraits.length}
         questions={withQuestion.length}
         legal={legal}

@@ -3,13 +3,13 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 
-import { getPortraits, getPortraitSlugs } from '@/lib/data'
+import { getCopy, getPortraits, getPortraitSlugs, getSettings } from '@/lib/data'
 import { photoSources } from '@/lib/photo'
 import { staticSlugParams } from '@/lib/static-params'
 import { seoMetadata } from '@/lib/metadata'
-import { it } from '@/site/it'
+import { fmt } from '@/site/copy'
 import { Parallax } from '@/site/Parallax'
-import { SiteNav } from '@/site/SiteNav'
+import { SiteMenu } from '@/site/SiteMenu'
 import { BackLink } from '@/site/BackLink'
 import { Faces } from '@/site/Faces'
 
@@ -24,13 +24,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const found = (await getPortraits()).find((p) => p.doc.slug === slug)
   if (!found) return {}
   const { doc, n } = found
-  const title = doc.question || `Ritratto N° ${String(n).padStart(2, '0')}`
+  const title =
+    doc.question || fmt((await getCopy()).portraits.alt, { n: String(n).padStart(2, '0') })
   return seoMetadata(title, doc.seo, doc.note, `/ritratti/${doc.slug}`)
 }
 
 async function PortraitView({ params }: Props) {
   const { slug } = await params
-  const all = await getPortraits()
+  const [all, copy, settings] = await Promise.all([getPortraits(), getCopy(), getSettings()])
+  const it = copy.portraits
   const index = all.findIndex((p) => p.doc.slug === slug)
   if (index < 0) notFound()
 
@@ -40,8 +42,7 @@ async function PortraitView({ params }: Props) {
 
   const prev = all[(index + all.length - 1) % all.length].doc
   const next = all[(index + 1) % all.length].doc
-  const series =
-    typeof doc.series === 'object' && doc.series ? doc.series.title : it.portraits.single
+  const series = typeof doc.series === 'object' && doc.series ? doc.series.title : it.single
   const meta = [doc.subject, series, doc.year].filter(Boolean).join(' · ')
   const num = String(n).padStart(2, '0')
   const others = all.filter((_, i) => i !== index).map((p) => p.doc.image)
@@ -55,9 +56,9 @@ async function PortraitView({ params }: Props) {
 
       <div className="top over">
         <Link href="/" className="serif logo">
-          Luke Ketz
+          {settings.siteName}
         </Link>
-        <BackLink label={it.portrait.back} backLabel={it.portrait.backPrev} />
+        <BackLink label={it.back} backLabel={it.backPrev} />
       </div>
 
       <main className="portrait-main">
@@ -67,7 +68,7 @@ async function PortraitView({ params }: Props) {
             src={photo.src}
             srcSet={photo.srcSet}
             sizes="(max-width: 900px) 90vw, 40vw"
-            alt={photo.alt || it.portraits.alt(n)}
+            alt={photo.alt || fmt(it.alt, { n })}
             width={photo.width}
             height={photo.height}
             fetchPriority="high"
@@ -79,7 +80,7 @@ async function PortraitView({ params }: Props) {
 
         <div className="portrait-text">
           <span className="kicker mono">
-            N° {num} · {it.home.question}
+            N° {num} · {copy.home.question}
           </span>
           {doc.question && <h1 className="serif question big">{doc.question}</h1>}
           <svg className="stroke" aria-hidden="true" viewBox="0 0 420 26">
@@ -98,16 +99,16 @@ async function PortraitView({ params }: Props) {
       <div className="portrait-bottom">
         <div className="steps">
           <Link href={`/ritratti/${prev.slug}`} className="mono step" rel="prev">
-            {it.portrait.prev}
+            {it.prev}
           </Link>
           <span className="mono muted">
             {num} / {String(all.length).padStart(2, '0')}
           </span>
           <Link href={`/ritratti/${next.slug}`} className="mono step" rel="next">
-            {it.portrait.next}
+            {it.next}
           </Link>
         </div>
-        <SiteNav current="portraits" />
+        <SiteMenu current="ritratti" />
       </div>
     </div>
   )

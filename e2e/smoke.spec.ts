@@ -108,7 +108,7 @@ test.describe('with a logged-in admin', () => {
     await expect(page.getByText('Una riga di prova')).toBeVisible()
 
     // The header links must be clickable on a portrait page, and "back" returns to the grid.
-    await page.getByRole('link', { name: 'Luke Ketz' }).first().click()
+    await page.locator('a.logo').first().click()
     await expect(page).toHaveURL(/\/$/)
     await page.goto('/ritratti')
     await page.locator('.tile').first().click()
@@ -166,6 +166,46 @@ test.describe('with a logged-in admin', () => {
     await page.goto('/diario/una-mano-di-prova')
     await expect(page.locator('ol.timeline li')).toHaveCount(1)
     await expect(page.getByText('85 mm')).toBeVisible()
+  })
+
+  test('the texts of each page are edited on that page and the menu follows the pages', async ({
+    page,
+    request,
+  }) => {
+    const { docs } = await (await page.request.get('/api/pages?limit=50&depth=0', json)).json()
+    const bySlug = Object.fromEntries(docs.map((d: { slug: string }) => [d.slug, d]))
+    for (const slug of ['home', 'chi-e', 'ritratti', 'diario', 'galleria-privata']) {
+      expect(bySlug[slug], slug).toBeTruthy()
+    }
+
+    const edit = async (slug: string, data: object) =>
+      page.request.patch(`/api/pages/${bySlug[slug].id}`, {
+        ...json,
+        data: { ...data, _status: 'published' },
+      })
+    expect(
+      (await edit('diario', { diary: { subtitle: 'Sottotitolo di prova' } })).ok(),
+    ).toBeTruthy()
+    expect(
+      (await edit('ritratti', { menuLabel: 'Volti', portraits: { empty: 'Nessun volto' } })).ok(),
+    ).toBeTruthy()
+    expect((await edit('galleria-privata', { gate: { submit: 'Entra' } })).ok()).toBeTruthy()
+
+    // Published edits reach the public pages without a redeploy.
+    await page.goto('/diario')
+    await expect(page.getByText('Sottotitolo di prova')).toBeVisible()
+    await expect(
+      page.getByRole('navigation', { name: 'Principale' }).getByText('Volti'),
+    ).toBeVisible()
+    expect(await (await request.get('/chi-e')).text()).toContain('Volti')
+
+    // The pages the design is built around cannot be deleted, renamed or turned into another kind.
+    expect((await page.request.delete(`/api/pages/${bySlug['diario'].id}`, json)).ok()).toBeFalsy()
+    await edit('diario', { slug: 'altro', kind: 'text' })
+    const again = await (await page.request.get(`/api/pages/${bySlug['diario'].id}`, json)).json()
+    expect([again.slug, again.kind]).toEqual(['diario', 'diary'])
+    // ...and they are not served as plain text pages.
+    expect(await (await request.get('/galleria-privata')).text()).toContain('Pagina non trovata')
   })
 
   test('a photo that is still in use cannot be deleted', async ({ page }) => {

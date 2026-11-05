@@ -1,6 +1,6 @@
 'use client'
 
-import { it } from '@/site/it'
+import { SYSTEM_TEXT as it } from '@/site/copy'
 
 export default function ErrorPage({ reset }: { error: Error; reset: () => void }) {
   return (

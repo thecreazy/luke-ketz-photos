@@ -32,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
     title: { default: s.siteName, template: `%s — ${s.siteName}` },
-    description: s.description ?? s.tagline ?? undefined,
+    description: s.description ?? undefined,
     openGraph: {
       siteName: s.siteName,
       type: 'website',

@@ -2,7 +2,6 @@ import Link from 'next/link'
 
 import { getNavPages, getSettings } from '@/lib/data'
 
-import { it } from './it'
 import { Year } from './Year'
 
 export async function SiteFooter() {
@@ -10,7 +9,7 @@ export async function SiteFooter() {
   return (
     <footer className="foot mono">
       <span>
-        © <Year /> {s.siteName} · {it.footer.rights}
+        © <Year /> {s.siteName} · {s.footerNote}
       </span>
       <nav aria-label="Informazioni">
         {pages.map((p) => (

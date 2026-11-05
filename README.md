@@ -6,18 +6,26 @@
 
 ## Luke Ketz: the site
 
-Site copy is Italian (`src/site/it.ts`), the admin is English. Design: dark only (no light theme, by decision), fonts Nothing You Could Do / Martian Mono / Hedvig Letters Serif via `next/font`.
-All design code is in `src/site/`; the routes in `src/app/(frontend)` stay thin.
+The admin is English and the site is Italian. Design: dark only (no light theme, by decision), fonts Nothing You Could
+Do / Martian Mono / Hedvig Letters Serif via `next/font`. All design code is in `src/site/`; the routes in
+`src/app/(frontend)` stay thin.
 
-| Page                   | Route                       | Content (admin)                                                                              |
-| ---------------------- | --------------------------- | -------------------------------------------------------------------------------------------- |
-| Home, "Campo di volti" | `/`                         | Portraits ticked **Show in the home field**; the question comes from Site settings → Tagline |
-| Portraits              | `/ritratti`                 | **Portraits**, filtered by **Series**                                                        |
-| A portrait             | `/ritratti/<slug>`          | question, a line from Luke, name/initials, series, year                                      |
-| Chi è                  | `/chi-e`                    | global **Chi è (About)**                                                                     |
-| Diary                  | `/diario`, `/diario/<slug>` | **Diary**: each article picks one of 4 layouts                                               |
-| Private galleries      | `/galleries/<slug>`         | **Private galleries** (password, expiry, access counter)                                     |
-| Legal pages            | `/<slug>`                   | **Pages** (Privacy, Cookies: drafts to review and publish)                                   |
+**Every page of the site is a document in admin → Pages**, and the texts of a page are fields of that page (the
+Italian defaults are in `src/site/copy.ts`; an empty field shows the default). Nothing visible is written in the code
+except the 404 and error pages. Home, Chi è, Ritratti, Diario and Galleria privata always exist: they cannot be
+deleted, renamed or turned into another kind; the others are plain text pages (Privacy, Cookies, a contacts page...)
+that can be added freely. A page with a **Menu label** is in the menu (ordered by **Menu order**); text pages without
+one are listed in the footer.
+
+| Page                   | Route                       | Where the texts and content are edited                                                                |
+| ---------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Home, "Campo di volti" | `/`                         | Pages → **Home** (words around the faces); faces: **Portraits** ticked **Show in the home field**     |
+| Portraits              | `/ritratti`                 | Pages → **Ritratti** (title, filters, buttons, portrait page labels); **Portraits**, **Series**       |
+| A portrait             | `/ritratti/<slug>`          | **Portraits**: question, a line from Luke, name/initials, series, year                                |
+| Chi è                  | `/chi-e`                    | Pages → **Chi è** (title, texts, steps, exhibitions, contact link, portrait)                          |
+| Diary                  | `/diario`, `/diario/<slug>` | Pages → **Diario** (title, labels, topic names); **Diary**: each article picks one of 4 layouts       |
+| Private galleries      | `/galleries/<slug>`         | **Private galleries** (password, expiry, counter); Pages → **Galleria privata** (the password screen) |
+| Legal and other pages  | `/<slug>`                   | Pages (Privacy, Cookies: drafts to review and publish)                                                |
 
 Adding portraits: admin → **Upload photos** → Destination "Photos (public portraits)" → "Create portraits in" a
 series or "Single portraits". It creates **draft** portraits in the order selected: write each question, tick the

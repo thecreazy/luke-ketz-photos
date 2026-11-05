@@ -3,8 +3,10 @@
 import Link from 'next/link'
 import { useState } from 'react'
 
-import { it } from './it'
+import type { Copy } from './copy'
+import { fmt } from './copy'
 import { SiteNav } from './SiteNav'
+import type { MenuItem } from './SiteNav'
 import { useParallax } from './use-parallax'
 
 export type FieldCard = {
@@ -34,9 +36,20 @@ type Props = {
   faces: number
   questions: number
   legal: { id: number; slug: string; title: string }[]
+  copy: Copy['home']
+  menu: MenuItem[]
 }
 
-export function HomeField({ cards, siteName, defaultQuestion, faces, questions, legal }: Props) {
+export function HomeField({
+  cards,
+  siteName,
+  defaultQuestion,
+  faces,
+  questions,
+  legal,
+  copy: it,
+  menu,
+}: Props) {
   const [active, setActive] = useState<number | null>(null)
   const ref = useParallax<HTMLDivElement>()
   const cur = active === null ? null : cards[active]
@@ -116,12 +129,12 @@ export function HomeField({ cards, siteName, defaultQuestion, faces, questions, 
         <Link href="/" className="serif logo">
           {siteName}
         </Link>
-        <span className="count mono">{it.home.counter(faces, questions)}</span>
+        <span className="count mono">{fmt(it.counter, { faces, questions })}</span>
       </div>
 
       <div className="home-center">
         <span className="kicker mono">
-          {cur ? (cur.about ? it.home.aboutCard : it.home.question) : it.home.kicker}
+          {cur ? (cur.about ? it.aboutCard : it.question) : it.kicker}
         </span>
         <h1 className="serif question" aria-live="polite">
           {cur ? cur.question : defaultQuestion}
@@ -137,16 +150,16 @@ export function HomeField({ cards, siteName, defaultQuestion, faces, questions, 
       </div>
 
       <div className="depth mono" aria-hidden="true">
-        <span>{it.home.near}</span>
+        <span>{it.near}</span>
         <div className="rail">
           <span className="dot" style={{ '--d': cur ? cur.z : 0.5 } as React.CSSProperties} />
         </div>
-        <span>{it.home.far}</span>
+        <span>{it.far}</span>
       </div>
 
       <div className="home-bottom">
         <div className="home-left">
-          <span className="hint mono">{it.home.hint}</span>
+          <span className="hint mono">{it.hint}</span>
           {legal.length > 0 && (
             <nav className="legal mono" aria-label="Informazioni">
               {legal.map((l) => (
@@ -157,7 +170,7 @@ export function HomeField({ cards, siteName, defaultQuestion, faces, questions, 
             </nav>
           )}
         </div>
-        <SiteNav />
+        <SiteNav items={menu} />
       </div>
     </div>
   )

@@ -1,20 +1,20 @@
 import type { Metadata } from 'next'
 
-import { getPortraits, getSeries } from '@/lib/data'
+import { getCopy, getPortraits, getSeries } from '@/lib/data'
 import { photoSources } from '@/lib/photo'
-import { it } from '@/site/it'
+import { fmt } from '@/site/copy'
 import { PortraitGrid } from '@/site/PortraitGrid'
 import type { GridItem } from '@/site/PortraitGrid'
 import { SiteFooter } from '@/site/SiteFooter'
 import { SiteHeader } from '@/site/SiteHeader'
 
-export const metadata: Metadata = {
-  title: it.portraits.title,
-  alternates: { canonical: '/ritratti' },
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getCopy()).titles.portraits, alternates: { canonical: '/ritratti' } }
 }
 
 export default async function Portraits() {
-  const [portraits, series] = await Promise.all([getPortraits(), getSeries()])
+  const [portraits, series, copy] = await Promise.all([getPortraits(), getSeries(), getCopy()])
+  const it = copy.portraits
 
   const items: GridItem[] = portraits.flatMap(({ doc, n }) => {
     const p = photoSources(doc.image)
@@ -25,7 +25,7 @@ export default async function Portraits() {
       question: doc.question ?? '',
       src: p.src,
       srcSet: p.srcSet,
-      alt: p.alt || it.portraits.alt(n),
+      alt: p.alt || fmt(it.alt, { n }),
       width: p.width,
       height: p.height,
       color: p.dominantColor ?? 'var(--surface)',
@@ -35,13 +35,17 @@ export default async function Portraits() {
 
   return (
     <div className="page">
-      <SiteHeader current="portraits" />
+      <SiteHeader current="ritratti" />
       <main className="wrap">
-        <h1 className="serif big">{it.portraits.title}</h1>
+        <h1 className="serif big">{copy.titles.portraits}</h1>
         {items.length === 0 ? (
-          <p className="muted body">{it.portraits.empty}</p>
+          <p className="muted body">{it.empty}</p>
         ) : (
-          <PortraitGrid items={items} series={series.map((s) => ({ id: s.id, title: s.title }))} />
+          <PortraitGrid
+            items={items}
+            series={series.map((s) => ({ id: s.id, title: s.title }))}
+            copy={it}
+          />
         )}
       </main>
       <SiteFooter />

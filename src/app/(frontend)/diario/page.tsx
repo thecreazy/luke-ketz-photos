@@ -1,19 +1,23 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
-import { getPosts } from '@/lib/data'
+import { getCopy, getPosts } from '@/lib/data'
 import { photoSources } from '@/lib/photo'
 import { DiaryRoll } from '@/site/DiaryRoll'
 import type { RollFrame } from '@/site/DiaryRoll'
 import { formatDate } from '@/site/format'
-import { it } from '@/site/it'
+import { fmt, themeLabels } from '@/site/copy'
 import { SiteFooter } from '@/site/SiteFooter'
 import { SiteHeader } from '@/site/SiteHeader'
 
-export const metadata: Metadata = { title: it.diary.title, alternates: { canonical: '/diario' } }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getCopy()).titles.diary, alternates: { canonical: '/diario' } }
+}
 
 export default async function Diary() {
-  const posts = await getPosts()
+  const [posts, copy] = await Promise.all([getPosts(), getCopy()])
+  const it = copy.diary
+  const themes = themeLabels(it)
   const latest = posts[0]
   const latestPhoto = latest ? photoSources(latest.cover) : null
 
@@ -23,11 +27,11 @@ export default async function Diary() {
       slug: p.slug,
       title: p.title,
       theme: p.theme,
-      themeLabel: it.themes[p.theme] ?? p.theme,
+      themeLabel: themes[p.theme] ?? p.theme,
       meta: [
-        it.themes[p.theme],
+        themes[p.theme],
         formatDate(p.publishedAt),
-        p.readTime ? it.diary.minutes(p.readTime) : null,
+        p.readTime ? fmt(it.minutes, { n: p.readTime }) : null,
       ]
         .filter(Boolean)
         .join(' · '),
@@ -38,11 +42,11 @@ export default async function Diary() {
 
   return (
     <div className="page">
-      <SiteHeader current="diary" />
+      <SiteHeader current="diario" />
       <main>
         <section className="wrap diary-intro">
-          <h1 className="serif big">{it.diary.title}</h1>
-          <span className="mono muted">{it.diary.subtitle}</span>
+          <h1 className="serif big">{copy.titles.diary}</h1>
+          <span className="mono muted">{it.subtitle}</span>
         </section>
 
         {latest ? (
@@ -61,27 +65,27 @@ export default async function Diary() {
                     fetchPriority="high"
                   />
                 )}
-                <span className="mono tag">{it.diary.latest}</span>
+                <span className="mono tag">{it.latest}</span>
               </div>
               <div className="latest-text">
                 <span className="mono accent">
                   {[
-                    it.themes[latest.theme],
+                    themes[latest.theme],
                     formatDate(latest.publishedAt),
-                    latest.readTime ? it.diary.minutes(latest.readTime) : null,
+                    latest.readTime ? fmt(it.minutes, { n: latest.readTime }) : null,
                   ]
                     .filter(Boolean)
                     .join(' · ')}
                 </span>
                 <span className="serif latest-title">{latest.title}</span>
                 {latest.excerpt && <p className="body">{latest.excerpt}</p>}
-                <span className="mono read">{it.diary.read}</span>
+                <span className="mono read">{it.read}</span>
               </div>
             </Link>
-            <DiaryRoll frames={frames} />
+            <DiaryRoll frames={frames} copy={it} />
           </>
         ) : (
-          <p className="wrap muted body">{it.diary.empty}</p>
+          <p className="wrap muted body">{it.empty}</p>
         )}
       </main>
       <SiteFooter />

@@ -100,11 +100,9 @@ export interface Config {
   };
   fallbackLocale: null;
   globals: {
-    about: About;
     'site-settings': SiteSetting;
   };
   globalsSelect: {
-    about: AboutSelect<false> | AboutSelect<true>;
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
   };
   locale: null;
@@ -389,18 +387,27 @@ export interface Post {
   _status?: ('draft' | 'published') | null;
 }
 /**
- * The page with slug "home" is the site home (/): its text is shown above the projects.
+ * Every page of the site. Home, Chi è, Ritratti, Diario and Galleria privata hold the texts of their page and cannot be deleted. Add your own text pages (e.g. contacts) with "Create new".
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages".
  */
 export interface Page {
   id: number;
+  kind?: ('text' | 'home' | 'about' | 'portraits' | 'diary' | 'gate') | null;
   title: string;
   /**
    * Generated from the title if left empty
    */
   slug: string;
+  /**
+   * Leave empty to keep the page out of the menu.
+   */
+  menuLabel?: string | null;
+  /**
+   * Lower = first
+   */
+  menuOrder?: number | null;
   content?: {
     root: {
       type: string;
@@ -416,6 +423,125 @@ export interface Page {
     };
     [k: string]: unknown;
   } | null;
+  /**
+   * The home shows the faces; these are the words around them.
+   */
+  home?: {
+    defaultQuestion?: string | null;
+    kicker?: string | null;
+    question?: string | null;
+    hint?: string | null;
+    near?: string | null;
+    far?: string | null;
+    /**
+     * Use {faces} and {questions} where the numbers go.
+     */
+    counter?: string | null;
+    aboutCard?: string | null;
+    aboutQuestion?: string | null;
+  };
+  about?: {
+    kicker?: string | null;
+    /**
+     * Put *asterisks* around the word to show in italic.
+     */
+    headline?: string | null;
+    portrait?: (number | null) | Media;
+    /**
+     * Paragraphs, or a line in handwriting. Shown in this order.
+     */
+    intro?:
+      | {
+          style?: ('paragraph' | 'quote') | null;
+          text: string;
+          id?: string | null;
+        }[]
+      | null;
+    stepsTitle?: string | null;
+    steps?:
+      | {
+          title: string;
+          text?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    exhibitions?:
+      | {
+          title: string;
+          place?: string | null;
+          year?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    exhibitionsTitle?: string | null;
+    /**
+     * Opens an email to the contact address in the site settings.
+     */
+    contactLabel?: string | null;
+    commissionNote?: string | null;
+  };
+  /**
+   * The grid and each portrait page.
+   */
+  portraits?: {
+    all?: string | null;
+    single?: string | null;
+    series?: string | null;
+    more?: string | null;
+    aria?: string | null;
+    /**
+     * Used when a photo has no description of its own. {n} is the portrait number.
+     */
+    alt?: string | null;
+    empty?: string | null;
+    back?: string | null;
+    backPrev?: string | null;
+    prev?: string | null;
+    next?: string | null;
+  };
+  /**
+   * The diary list and its article pages.
+   */
+  diary?: {
+    subtitle?: string | null;
+    latest?: string | null;
+    read?: string | null;
+    roll?: string | null;
+    filter?: string | null;
+    all?: string | null;
+    prev?: string | null;
+    next?: string | null;
+    noPhoto?: string | null;
+    nextPage?: string | null;
+    /**
+     * Use {n} for the number of minutes.
+     */
+    minutes?: string | null;
+    /**
+     * Use {n} for the number of photos.
+     */
+    photos?: string | null;
+    empty?: string | null;
+    themeVita?: string | null;
+    themeMostre?: string | null;
+    themeDietro?: string | null;
+  };
+  /**
+   * The screen where a client types the password. The page itself is not public.
+   */
+  gate?: {
+    kicker?: string | null;
+    title?: string | null;
+    hint?: string | null;
+    label?: string | null;
+    placeholder?: string | null;
+    submit?: string | null;
+    wrong?: string | null;
+    tooMany?: string | null;
+    private?: string | null;
+    open?: string | null;
+    expired?: string | null;
+  };
   seo?: {
     /**
      * Max ~60 characters
@@ -741,9 +867,108 @@ export interface PostsSelect<T extends boolean = true> {
  * via the `definition` "pages_select".
  */
 export interface PagesSelect<T extends boolean = true> {
+  kind?: T;
   title?: T;
   slug?: T;
+  menuLabel?: T;
+  menuOrder?: T;
   content?: T;
+  home?:
+    | T
+    | {
+        defaultQuestion?: T;
+        kicker?: T;
+        question?: T;
+        hint?: T;
+        near?: T;
+        far?: T;
+        counter?: T;
+        aboutCard?: T;
+        aboutQuestion?: T;
+      };
+  about?:
+    | T
+    | {
+        kicker?: T;
+        headline?: T;
+        portrait?: T;
+        intro?:
+          | T
+          | {
+              style?: T;
+              text?: T;
+              id?: T;
+            };
+        stepsTitle?: T;
+        steps?:
+          | T
+          | {
+              title?: T;
+              text?: T;
+              id?: T;
+            };
+        exhibitions?:
+          | T
+          | {
+              title?: T;
+              place?: T;
+              year?: T;
+              id?: T;
+            };
+        exhibitionsTitle?: T;
+        contactLabel?: T;
+        commissionNote?: T;
+      };
+  portraits?:
+    | T
+    | {
+        all?: T;
+        single?: T;
+        series?: T;
+        more?: T;
+        aria?: T;
+        alt?: T;
+        empty?: T;
+        back?: T;
+        backPrev?: T;
+        prev?: T;
+        next?: T;
+      };
+  diary?:
+    | T
+    | {
+        subtitle?: T;
+        latest?: T;
+        read?: T;
+        roll?: T;
+        filter?: T;
+        all?: T;
+        prev?: T;
+        next?: T;
+        noPhoto?: T;
+        nextPage?: T;
+        minutes?: T;
+        photos?: T;
+        empty?: T;
+        themeVita?: T;
+        themeMostre?: T;
+        themeDietro?: T;
+      };
+  gate?:
+    | T
+    | {
+        kicker?: T;
+        title?: T;
+        hint?: T;
+        label?: T;
+        placeholder?: T;
+        submit?: T;
+        wrong?: T;
+        tooMany?: T;
+        private?: T;
+        open?: T;
+        expired?: T;
+      };
   seo?:
     | T
     | {
@@ -940,97 +1165,22 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "about".
- */
-export interface About {
-  id: number;
-  kicker?: string | null;
-  /**
-   * Put *asterisks* around the word to show in italic.
-   */
-  headline: string;
-  portrait?: (number | null) | Media;
-  /**
-   * Paragraphs, or a line in handwriting. Shown in this order.
-   */
-  intro?:
-    | {
-        style?: ('paragraph' | 'quote') | null;
-        text: string;
-        id?: string | null;
-      }[]
-    | null;
-  stepsTitle?: string | null;
-  steps?:
-    | {
-        title: string;
-        text?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  exhibitions?:
-    | {
-        title: string;
-        place?: string | null;
-        year?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  commissionNote?: string | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings".
  */
 export interface SiteSetting {
   id: number;
   siteName: string;
-  tagline?: string | null;
   description?: string | null;
   bio?: string | null;
   email?: string | null;
   instagram?: string | null;
+  /**
+   * Shown after "© year name" at the bottom of every page.
+   */
+  footerNote?: string | null;
   ogImage?: (number | null) | Media;
   updatedAt?: string | null;
   createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "about_select".
- */
-export interface AboutSelect<T extends boolean = true> {
-  kicker?: T;
-  headline?: T;
-  portrait?: T;
-  intro?:
-    | T
-    | {
-        style?: T;
-        text?: T;
-        id?: T;
-      };
-  stepsTitle?: T;
-  steps?:
-    | T
-    | {
-        title?: T;
-        text?: T;
-        id?: T;
-      };
-  exhibitions?:
-    | T
-    | {
-        title?: T;
-        place?: T;
-        year?: T;
-        id?: T;
-      };
-  commissionNote?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1038,11 +1188,11 @@ export interface AboutSelect<T extends boolean = true> {
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
   siteName?: T;
-  tagline?: T;
   description?: T;
   bio?: T;
   email?: T;
   instagram?: T;
+  footerNote?: T;
   ogImage?: T;
   updatedAt?: T;
   createdAt?: T;

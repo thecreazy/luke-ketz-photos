@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRef, useState } from 'react'
 
-import { it } from './it'
+import type { Copy } from './copy'
 
 export type RollFrame = {
   slug: string
@@ -15,7 +15,7 @@ export type RollFrame = {
   alt: string
 }
 
-export function DiaryRoll({ frames }: { frames: RollFrame[] }) {
+export function DiaryRoll({ frames, copy: it }: { frames: RollFrame[]; copy: Copy['diary'] }) {
   const [theme, setTheme] = useState('all')
   const [first, setFirst] = useState(0)
   const track = useRef<HTMLDivElement>(null)
@@ -49,9 +49,9 @@ export function DiaryRoll({ frames }: { frames: RollFrame[] }) {
       <div className="roll-head wrap">
         <div>
           <h2 id="rullino" className="mono muted">
-            {it.diary.roll}
+            {it.roll}
           </h2>
-          <div className="chips" role="group" aria-label={it.diary.filter}>
+          <div className="chips" role="group" aria-label={it.filter}>
             {['all', ...themes].map((t) => (
               <button
                 key={t}
@@ -60,7 +60,7 @@ export function DiaryRoll({ frames }: { frames: RollFrame[] }) {
                 aria-pressed={theme === t}
                 onClick={() => pick(t)}
               >
-                {t === 'all' ? it.diary.all : label(t)}
+                {t === 'all' ? it.all : label(t)}
                 <sup className="mono">
                   {t === 'all' ? frames.length : frames.filter((f) => f.theme === t).length}
                 </sup>
@@ -69,24 +69,14 @@ export function DiaryRoll({ frames }: { frames: RollFrame[] }) {
           </div>
         </div>
         <div className="arrows">
-          <button
-            type="button"
-            className="mono ar"
-            aria-label={it.diary.prev}
-            onClick={() => step(-1)}
-          >
+          <button type="button" className="mono ar" aria-label={it.prev} onClick={() => step(-1)}>
             ←
           </button>
           <span className="mono muted">
             {String(Math.min(first + 1, list.length)).padStart(2, '0')} /{' '}
             {String(list.length).padStart(2, '0')}
           </span>
-          <button
-            type="button"
-            className="mono ar"
-            aria-label={it.diary.next}
-            onClick={() => step(1)}
-          >
+          <button type="button" className="mono ar" aria-label={it.next} onClick={() => step(1)}>
             →
           </button>
         </div>
@@ -106,7 +96,7 @@ export function DiaryRoll({ frames }: { frames: RollFrame[] }) {
                 <img src={f.src} alt={f.alt} loading={i < 3 ? 'eager' : 'lazy'} decoding="async" />
               ) : (
                 <span className="nophoto">
-                  <span className="mono muted">{it.diary.noPhoto}</span>
+                  <span className="mono muted">{it.noPhoto}</span>
                   <span className="serif">{f.title.charAt(0)}</span>
                 </span>
               )}

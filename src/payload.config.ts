@@ -15,11 +15,10 @@ import { PrivateGalleries } from './collections/PrivateGalleries'
 import { PrivateMedia } from './collections/PrivateMedia'
 import { Projects } from './collections/Projects'
 import { Users } from './collections/Users'
-import { About } from './globals/About'
 import { SiteSettings } from './globals/SiteSettings'
 import { env } from './lib/env'
 import { PRIVATE_PREFIX, PUBLIC_PREFIX } from './lib/s3'
-import { ensureHomePage } from './lib/seed'
+import { ensureSystemPages } from './lib/seed'
 import { MAX_UPLOAD_BYTES } from './lib/upload'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -54,7 +53,7 @@ export default buildConfig({
     meta: { titleSuffix: ' — Admin' },
   },
   collections: [Portraits, Projects, Posts, Pages, PrivateGalleries, Media, PrivateMedia, Users],
-  globals: [About, SiteSettings],
+  globals: [SiteSettings],
   editor: lexicalEditor(),
   secret: env.PAYLOAD_SECRET,
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') },
@@ -66,7 +65,7 @@ export default buildConfig({
   sharp,
   upload: { limits: { fileSize: MAX_UPLOAD_BYTES } },
   onInit: async (payload) => {
-    await ensureHomePage(payload)
+    await ensureSystemPages(payload)
   },
   plugins: [
     // Public bucket: direct CDN URLs, no round trip through the server.

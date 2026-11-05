@@ -8,7 +8,7 @@ import type {
 } from 'payload'
 
 // Tags used by the cached readers in src/lib/data.ts:
-//   settings · about · media · pages / page:<slug> · projects / project:<slug> · portraits /
+//   settings · media · pages / page:<slug> · projects / project:<slug> · portraits /
 //   portrait:<slug> · posts / post:<slug>
 
 // `{ expire: 0 }`: stale content is never served, so the first visit after an edit gets fresh data.

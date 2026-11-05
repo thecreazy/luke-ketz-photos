@@ -6,16 +6,17 @@ import { redirect } from 'next/navigation'
 import { galleryToken, isExpired, verifyPassword } from '@/lib/password'
 import { payload } from '@/lib/payload'
 import { allowGalleryAttempt, clientIp } from '@/lib/ratelimit'
-import { it } from '@/site/it'
+import { getCopy } from '@/lib/data'
 
 type State = { error: string; n: number } | undefined
 
 export async function unlock(slug: string, _prev: State, form: FormData): Promise<State> {
+  const it = (await getCopy()).gate
   // `n` changes on every refusal, so the form can replay its "shake".
   const refuse = (error: string) => ({ error, n: Date.now() })
 
   if (!(await allowGalleryAttempt(clientIp(await headers()), slug))) {
-    return refuse(it.gallery.tooMany)
+    return refuse(it.tooMany)
   }
   const password = String(form.get('password') ?? '')
   const gallery = (
@@ -30,9 +31,9 @@ export async function unlock(slug: string, _prev: State, form: FormData): Promis
   ).docs[0]
 
   if (!gallery?.passwordHash || !verifyPassword(password, gallery.passwordHash)) {
-    return refuse(it.gallery.wrong)
+    return refuse(it.wrong)
   }
-  if (isExpired(gallery.expiresAt)) return refuse(it.gallery.expired)
+  if (isExpired(gallery.expiresAt)) return refuse(it.expired)
 
   // Read-then-write: two simultaneous entries can count once, which is fine for a rough counter.
   await (

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 
-import { it } from './it'
+import type { Copy } from './copy'
 
 export type GridItem = {
   slug: string
@@ -18,12 +18,16 @@ export type GridItem = {
   series: number | null
 }
 
-type Props = { items: GridItem[]; series: { id: number; title: string }[] }
+type Props = {
+  items: GridItem[]
+  series: { id: number; title: string }[]
+  copy: Copy['portraits']
+}
 type Key = 'all' | 'single' | number
 
 const PAGE = 12
 
-export function PortraitGrid({ items, series }: Props) {
+export function PortraitGrid({ items, series, copy: it }: Props) {
   const [filter, setFilter] = useState<Key>('all')
   const [hover, setHover] = useState<string | null>(null)
   const [shown, setShown] = useState(PAGE)
@@ -33,9 +37,9 @@ export function PortraitGrid({ items, series }: Props) {
       .length
 
   const all: { key: Key; label: string }[] = [
-    { key: 'all', label: it.portraits.all },
+    { key: 'all', label: it.all },
     ...series.map((s) => ({ key: s.id, label: s.title })),
-    { key: 'single', label: it.portraits.single },
+    { key: 'single', label: it.single },
   ]
   const chips = all.filter((c) => c.key === 'all' || count(c.key) > 0)
 
@@ -46,7 +50,7 @@ export function PortraitGrid({ items, series }: Props) {
   return (
     <>
       {chips.length > 2 && (
-        <div className="chips" role="group" aria-label={it.portraits.series}>
+        <div className="chips" role="group" aria-label={it.series}>
           {chips.map((c) => (
             <button
               key={String(c.key)}
@@ -68,7 +72,7 @@ export function PortraitGrid({ items, series }: Props) {
 
       <section
         className="masonry"
-        aria-label={it.portraits.aria}
+        aria-label={it.aria}
         data-hover={hover ? '' : undefined}
         onMouseLeave={() => setHover(null)}
       >
@@ -108,7 +112,7 @@ export function PortraitGrid({ items, series }: Props) {
       {shown < list.length && (
         <div className="more">
           <button type="button" className="mono more-btn" onClick={() => setShown((n) => n + PAGE)}>
-            {it.portraits.more}
+            {it.more}
           </button>
         </div>
       )}

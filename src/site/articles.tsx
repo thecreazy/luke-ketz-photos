@@ -2,22 +2,28 @@ import Link from 'next/link'
 import React from 'react'
 
 import { Rich } from '@/components/Rich'
+import { getCopy } from '@/lib/data'
 import { photoSources } from '@/lib/photo'
 import type { Media, Post } from '@/payload-types'
 
 import { Faces } from './Faces'
+import type { Copy } from './copy'
+import { fmt, themeLabels } from './copy'
 import { formatDate } from './format'
-import { it } from './it'
 import { Parallax } from './Parallax'
 import { SiteFooter } from './SiteFooter'
 import { SiteHeader } from './SiteHeader'
-import { SiteNav } from './SiteNav'
+import { SiteMenu } from './SiteMenu'
 
 type Next = { slug: string; title: string; theme: string } | null
 type Props = { post: Post; next: Next; faces: (Media | number | null | undefined)[] }
 
-const kicker = (p: Post) =>
-  [it.themes[p.theme], formatDate(p.publishedAt), p.readTime ? it.diary.minutes(p.readTime) : null]
+const kicker = (it: Copy['diary'], p: Post) =>
+  [
+    themeLabels(it)[p.theme],
+    formatDate(p.publishedAt),
+    p.readTime ? fmt(it.minutes, { n: p.readTime }) : null,
+  ]
     .filter(Boolean)
     .join(' · ')
 
@@ -49,12 +55,12 @@ function Pic({
   )
 }
 
-function NextPage({ next }: { next: Next }) {
+function NextPage({ next, it }: { next: Next; it: Copy['diary'] }) {
   if (!next) return null
   return (
     <Link href={`/diario/${next.slug}`} className="nx">
       <span className="mono muted">
-        {it.diary.nextPage} · {it.themes[next.theme]}
+        {it.nextPage} · {themeLabels(it)[next.theme]}
       </span>
       <span className="serif">{next.title} →</span>
     </Link>
@@ -62,16 +68,17 @@ function NextPage({ next }: { next: Next }) {
 }
 
 // A · Campo: text, a big handwritten question, the portrait at the end.
-export function ArticleCampo({ post, next, faces }: Props) {
+export async function ArticleCampo({ post, next, faces }: Props) {
+  const it = (await getCopy()).diary
   return (
     <div className="field glow article page">
       <Parallax className="field-layer fixed">
         <Faces images={faces} slots="margin" soften={3} />
       </Parallax>
       <div className="vignette" aria-hidden="true" />
-      <SiteHeader current="diary" />
+      <SiteHeader current="diario" />
       <main className="col">
-        <span className="mono accent">{kicker(post)}</span>
+        <span className="mono accent">{kicker(it, post)}</span>
         <h1 className="serif big">{post.title}</h1>
         <div className="prose body">
           <Rich data={post.content} />
@@ -83,7 +90,7 @@ export function ArticleCampo({ post, next, faces }: Props) {
             <span className="corner tl" aria-hidden="true" />
           </figure>
         )}
-        <NextPage next={next} />
+        <NextPage next={next} it={it} />
       </main>
       <SiteFooter />
     </div>
@@ -91,7 +98,8 @@ export function ArticleCampo({ post, next, faces }: Props) {
 }
 
 // B · Fotoracconto: a hero photo, then the day hour by hour.
-export function ArticleFotoracconto({ post, next }: Props) {
+export async function ArticleFotoracconto({ post, next }: Props) {
+  const it = (await getCopy()).diary
   const count =
     (post.cover ? 1 : 0) + (post.sections ?? []).reduce((n, s) => n + (s.photos?.length ?? 0), 0)
   return (
@@ -103,17 +111,17 @@ export function ArticleFotoracconto({ post, next }: Props) {
           <Link href="/" className="serif logo">
             Luke Ketz
           </Link>
-          <SiteNav current="diary" />
+          <SiteMenu current="diario" />
         </div>
         <div className="b-title wrap">
           <div>
-            <span className="mono accent">{kicker(post)}</span>
+            <span className="mono accent">{kicker(it, post)}</span>
             <h1 className="serif big">{post.title}</h1>
           </div>
           <span className="mono muted">
             {[
-              count ? it.diary.photos(count) : null,
-              post.readTime ? it.diary.minutes(post.readTime) : null,
+              count ? fmt(it.photos, { n: count }) : null,
+              post.readTime ? fmt(it.minutes, { n: post.readTime }) : null,
             ]
               .filter(Boolean)
               .join(' · ')}
@@ -151,7 +159,7 @@ export function ArticleFotoracconto({ post, next }: Props) {
           )
         })}
         <div className="wrap">
-          <NextPage next={next} />
+          <NextPage next={next} it={it} />
         </div>
       </main>
       <SiteFooter />
@@ -160,12 +168,13 @@ export function ArticleFotoracconto({ post, next }: Props) {
 }
 
 // C · Domande e risposte: numbered questions in handwriting, answers beside them.
-export function ArticleDomande({ post, next }: Props) {
+export async function ArticleDomande({ post, next }: Props) {
+  const it = (await getCopy()).diary
   return (
     <div className="page">
-      <SiteHeader current="diary" />
+      <SiteHeader current="diario" />
       <main className="wrap qa-page">
-        <span className="mono accent">{kicker(post)}</span>
+        <span className="mono accent">{kicker(it, post)}</span>
         <h1 className="serif big">{post.title}</h1>
         {post.intro && <p className="body lead">{post.intro}</p>}
         <ol className="qa">
@@ -180,7 +189,7 @@ export function ArticleDomande({ post, next }: Props) {
             </li>
           ))}
         </ol>
-        <NextPage next={next} />
+        <NextPage next={next} it={it} />
       </main>
       <SiteFooter />
     </div>
@@ -188,7 +197,8 @@ export function ArticleDomande({ post, next }: Props) {
 }
 
 // D · Dietro lo scatto: one photograph on the left, its story as a timeline on the right.
-export function ArticleDietro({ post, next }: Props) {
+export async function ArticleDietro({ post, next }: Props) {
+  const it = (await getCopy()).diary
   const chips =
     post.exifLine
       ?.split('·')
@@ -214,8 +224,8 @@ export function ArticleDietro({ post, next }: Props) {
       </aside>
 
       <div className="d-col">
-        <SiteNav current="diary" />
-        <span className="mono accent">{kicker(post)}</span>
+        <SiteMenu current="diario" />
+        <span className="mono accent">{kicker(it, post)}</span>
         <h1 className="serif big">{post.title}</h1>
         {post.intro && <p className="body lead">{post.intro}</p>}
         <ol className="timeline">
@@ -244,7 +254,7 @@ export function ArticleDietro({ post, next }: Props) {
             )
           })}
         </ol>
-        <NextPage next={next} />
+        <NextPage next={next} it={it} />
         <SiteFooter />
       </div>
     </div>

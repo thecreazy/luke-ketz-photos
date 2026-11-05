@@ -8,6 +8,9 @@
 // query filters on `_status: published`.
 import { cacheLife, cacheTag } from 'next/cache'
 
+import { mergeCopy } from '@/site/copy'
+import type { CopyKind } from '@/site/copy'
+
 import { payload } from './payload'
 
 const published = { _status: { equals: 'published' } } as const
@@ -18,13 +21,65 @@ export async function getSettings() {
   return (await payload()).findGlobal({ slug: 'site-settings', depth: 1 })
 }
 
-export async function getAbout() {
-  cacheTag('about', 'media')
-  cacheLife('max')
-  return (await payload()).findGlobal({ slug: 'about', depth: 1 })
+// The pages the site is built around hold its texts: home, about, portraits, diary, private gallery.
+async function systemPages() {
+  const { docs } = await (
+    await payload()
+  ).find({
+    collection: 'pages',
+    depth: 1,
+    pagination: false,
+    where: { ...published, kind: { in: ['home', 'about', 'portraits', 'diary', 'gate'] } },
+  })
+  return docs
 }
 
-// Plain pages (privacy, cookies...): listed in the footer.
+/** All the fixed texts of the site (the default wherever a field is empty). */
+export async function getCopy() {
+  cacheTag('pages')
+  cacheLife('max')
+  const docs = await systemPages()
+  const group = (kind: CopyKind) => docs.find((d) => d.kind === kind)?.[kind] ?? null
+  const title = (kind: CopyKind | 'about') => docs.find((d) => d.kind === kind)?.title ?? ''
+  return {
+    ...mergeCopy({
+      home: group('home'),
+      portraits: group('portraits'),
+      diary: group('diary'),
+      gate: group('gate'),
+    }),
+    titles: { about: title('about'), portraits: title('portraits'), diary: title('diary') },
+  }
+}
+
+/** The "Chi è" page content (title, texts, portrait). */
+export async function getAbout() {
+  cacheTag('pages', 'media')
+  cacheLife('max')
+  const doc = (await systemPages()).find((d) => d.kind === 'about')
+  return doc?.about ?? {}
+}
+
+/** The menu: pages with a menu label, in order. */
+export async function getMenu() {
+  cacheTag('pages')
+  cacheLife('max')
+  const { docs } = await (
+    await payload()
+  ).find({
+    collection: 'pages',
+    depth: 0,
+    pagination: false,
+    sort: 'menuOrder',
+    select: { slug: true, menuLabel: true, menuOrder: true, kind: true },
+    where: { ...published, menuLabel: { exists: true } },
+  })
+  return docs
+    .filter((d) => d.menuLabel?.trim())
+    .map((d) => ({ key: d.slug, href: `/${d.slug}`, label: d.menuLabel as string }))
+}
+
+// Text pages (privacy, cookies...) that are not in the menu: listed in the footer.
 export async function getNavPages() {
   cacheTag('pages')
   cacheLife('max')
@@ -35,10 +90,10 @@ export async function getNavPages() {
     depth: 0,
     pagination: false,
     sort: 'title',
-    select: { title: true, slug: true },
-    where: { ...published, slug: { not_equals: 'home' } },
+    select: { title: true, slug: true, menuLabel: true },
+    where: { ...published, or: [{ kind: { equals: 'text' } }, { kind: { exists: false } }] },
   })
-  return docs
+  return docs.filter((d) => !d.menuLabel?.trim())
 }
 
 export async function getPage(slug: string) {
@@ -50,7 +105,11 @@ export async function getPage(slug: string) {
     collection: 'pages',
     depth: 1,
     limit: 1,
-    where: { ...published, slug: { equals: slug } },
+    where: {
+      ...published,
+      slug: { equals: slug },
+      or: [{ kind: { equals: 'text' } }, { kind: { exists: false } }],
+    },
   })
   return docs[0] ?? null
 }
@@ -65,7 +124,7 @@ export async function getPageSlugs() {
     depth: 0,
     pagination: false,
     select: { slug: true },
-    where: { ...published, slug: { not_equals: 'home' } },
+    where: { ...published, or: [{ kind: { equals: 'text' } }, { kind: { exists: false } }] },
   })
   return docs.map((d) => d.slug)
 }
@@ -184,7 +243,7 @@ export async function getSitemapEntries() {
       where: { ...published, ...extra },
     })
   const [pages, portraits, posts] = await Promise.all([
-    find('pages', { slug: { not_equals: 'home' } }),
+    find('pages', { or: [{ kind: { equals: 'text' } }, { kind: { exists: false } }] }),
     find('portraits'),
     find('posts'),
   ])

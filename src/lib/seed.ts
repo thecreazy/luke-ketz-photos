@@ -1,5 +1,7 @@
 import type { Payload } from 'payload'
 
+import { SYSTEM_PAGES } from '@/site/copy'
+
 const paragraph = (text: string) => ({
   type: 'paragraph',
   version: 1,
@@ -20,6 +22,35 @@ const richText = (...paragraphs: string[]) => ({
     children: paragraphs.map(paragraph),
   },
 })
+
+const ABOUT_START = {
+  intro: [
+    {
+      style: 'paragraph' as const,
+      text: "Cerco l'impatto: il contrasto tra una bellezza istintiva e qualcosa di più riflessivo, una lotta interiore. Voglio raccontare storie intime con una semplicità disarmante.",
+    },
+    { style: 'quote' as const, text: 'Non esistono persone non fotogeniche.' },
+    {
+      style: 'paragraph' as const,
+      text: 'Esiste chi non sa far emergere la bellezza di chi ha davanti. Il mio lavoro è questo.',
+    },
+  ],
+  steps: [
+    {
+      title: 'Il dialogo',
+      text: "Parlo, e intanto osservo. Cerco l'anima che non si è ancora espressa.",
+    },
+    {
+      title: 'La domanda scomoda',
+      text: 'A volte serve una domanda che mette a disagio per entrare in sintonia con quello che una persona ha vissuto.',
+    },
+    {
+      title: "L'alchimia",
+      text: 'È il momento in cui riesco ad andare oltre lo sguardo e il corpo e l’anima finalmente coincidono. A quel punto la posa non conta più.',
+    },
+  ],
+  exhibitions: [{ title: 'Oltre il Visibile', place: 'Piacenza', year: '2026' }],
+}
 
 // Starting points only, NOT legal advice: the photographer (or their lawyer) must review and
 // complete them. They are created as drafts so nothing goes public until someone publishes them.
@@ -46,47 +77,72 @@ const LEGAL_PAGES = [
   },
 ]
 
-// Creates the "home" page on first start if it is missing. Never touches an existing one.
-export const ensureHomePage = async (payload: Payload) => {
-  const existing = await payload.find({
-    collection: 'pages',
-    limit: 1,
-    where: { slug: { equals: 'home' } },
-  })
-  if (existing.totalDocs > 0) return
-
+// The pages the site is built around (home, about, portraits, diary, private gallery) must exist:
+// they hold the site's texts. Created on start when missing, never overwritten once they exist.
+// The legal drafts are only created on a brand new site, so a page deleted later does not return.
+export const ensureSystemPages = async (payload: Payload) => {
+  const lost = (error: unknown) => JSON.stringify(error).includes('Value must be unique')
   try {
-    await payload.create({
-      collection: 'pages',
-      context: { disableRevalidate: true },
-      data: {
-        title: 'Home',
-        slug: 'home',
-        _status: 'published',
-        content: {
-          root: {
-            type: 'root',
-            version: 1,
-            direction: 'ltr',
-            format: '',
-            indent: 0,
-            children: [paragraph('Welcome. Edit this text from the "Home" page in the admin.')],
-          },
-        },
-      },
-    })
-    // Only on a brand new site, so a page the photographer deleted never comes back.
-    for (const page of LEGAL_PAGES) {
-      await payload.create({
+    // Published pages live in the main table, never-published drafts only in the versions.
+    const find = (draft: boolean) =>
+      payload.find({
         collection: 'pages',
-        context: { disableRevalidate: true },
-        data: { ...page, _status: 'draft' },
-        draft: true,
+        draft,
+        limit: 100,
+        depth: 0,
+        pagination: false,
+        select: { slug: true, kind: true },
       })
+    const [published, drafts] = await Promise.all([find(false), find(true)])
+    const bySlug = new Map([...drafts.docs, ...published.docs].map((d) => [d.slug, d]))
+    const brandNew = bySlug.size === 0
+
+    for (const sp of SYSTEM_PAGES) {
+      const found = bySlug.get(sp.slug)
+      try {
+        if (found) {
+          // A page created before kinds existed (the old home): adopt it.
+          if (found.kind !== sp.kind) {
+            await payload.update({
+              collection: 'pages',
+              id: found.id,
+              context: { disableRevalidate: true },
+              data: { kind: sp.kind },
+            })
+          }
+          continue
+        }
+        await payload.create({
+          collection: 'pages',
+          context: { disableRevalidate: true },
+          data: {
+            ...sp,
+            _status: 'published',
+            // About: the starting text, to be replaced by the photographer's own.
+            ...(sp.kind === 'about' ? { about: ABOUT_START } : {}),
+          },
+        })
+      } catch (error) {
+        // Several workers/instances start at once (e.g. `next build`): losing the race is fine.
+        if (!lost(error)) throw error
+      }
+    }
+
+    if (brandNew) {
+      for (const page of LEGAL_PAGES) {
+        try {
+          await payload.create({
+            collection: 'pages',
+            context: { disableRevalidate: true },
+            data: { ...page, _status: 'draft' },
+            draft: true,
+          })
+        } catch (error) {
+          if (!lost(error)) throw error
+        }
+      }
     }
   } catch (error) {
-    // Several workers/instances start at once (e.g. `next build`): losing the race is fine.
-    const lost = JSON.stringify(error).includes('Value must be unique')
-    if (!lost) throw error
+    if (!JSON.stringify(error).includes('Value must be unique')) throw error
   }
 }

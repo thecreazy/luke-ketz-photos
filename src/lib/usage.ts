@@ -21,6 +21,11 @@ const PUBLIC_USAGES: Usage[] = [
   seo('projects', 'series'),
   seo('pages', 'page'),
   {
+    collection: 'pages',
+    label: 'Chi è page (portrait)',
+    where: (id) => ({ 'about.portrait': { equals: id } }),
+  },
+  {
     collection: 'posts',
     label: 'article (main photo)',
     where: (id) => ({ cover: { equals: id } }),
@@ -91,16 +96,10 @@ const guard =
     )
   }
 
-// Globals hold photos too: the default social image and the portrait on the About page.
+// The site settings hold a photo too: the default social image.
 const globalsUsage = async (payload: Payload, id: number | string) => {
-  const [settings, about] = await Promise.all([
-    payload.findGlobal({ slug: 'site-settings', depth: 0 }),
-    payload.findGlobal({ slug: 'about', depth: 0 }),
-  ])
-  return [
-    ...(settings.ogImage === id ? ['site settings (default social image)'] : []),
-    ...(about.portrait === id ? ['Chi è page (portrait)'] : []),
-  ]
+  const settings = await payload.findGlobal({ slug: 'site-settings', depth: 0 })
+  return settings.ogImage === id ? ['site settings (default social image)'] : []
 }
 
 export const protectPublicMedia = guard(PUBLIC_USAGES, globalsUsage)

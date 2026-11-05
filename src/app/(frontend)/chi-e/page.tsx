@@ -1,15 +1,16 @@
 import type { Metadata } from 'next'
 import React from 'react'
 
-import { getAbout, getPortraits, getSettings } from '@/lib/data'
+import { getAbout, getCopy, getPortraits, getSettings } from '@/lib/data'
 import { photoSources } from '@/lib/photo'
 import { Faces } from '@/site/Faces'
-import { it } from '@/site/it'
 import { Parallax } from '@/site/Parallax'
 import { SiteFooter } from '@/site/SiteFooter'
 import { SiteHeader } from '@/site/SiteHeader'
 
-export const metadata: Metadata = { title: it.nav.about, alternates: { canonical: '/chi-e' } }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getCopy()).titles.about, alternates: { canonical: '/chi-e' } }
+}
 
 // "*word*" in the title is shown in italic.
 const emphasise = (text: string) =>
@@ -30,7 +31,7 @@ export default async function About() {
         <Faces images={portraits.slice(0, 8).map((p) => p.doc.image)} slots="margin" soften={2} />
       </Parallax>
       <div className="vignette" aria-hidden="true" />
-      <SiteHeader current="about" />
+      <SiteHeader current="chi-e" />
 
       <main className="about-main" data-solo={luke ? undefined : ''}>
         {luke && (
@@ -41,7 +42,7 @@ export default async function About() {
               src={luke.src}
               srcSet={luke.srcSet}
               sizes="(max-width: 900px) 90vw, 46vw"
-              alt={luke.alt || 'Ritratto di Luke Ketz'}
+              alt={luke.alt || `Ritratto di ${s.siteName}`}
               width={luke.width}
               height={luke.height}
               fetchPriority="high"
@@ -51,7 +52,7 @@ export default async function About() {
 
         <div className="about-text">
           {a.kicker && <span className="mono kicker">{a.kicker}</span>}
-          <h1 className="serif big">{emphasise(a.headline)}</h1>
+          <h1 className="serif big">{emphasise(a.headline ?? '')}</h1>
 
           <div className="about-intro">
             {a.intro?.map((b) =>
@@ -85,7 +86,7 @@ export default async function About() {
           <div className="about-lists">
             {a.exhibitions && a.exhibitions.length > 0 && (
               <section>
-                <h2 className="mono muted">Mostre</h2>
+                <h2 className="mono muted">{a.exhibitionsTitle}</h2>
                 <ul className="plain">
                   {a.exhibitions.map((e) => (
                     <li key={e.id} className="serif">
@@ -104,7 +105,7 @@ export default async function About() {
             <section>
               {a.commissionNote && <h2 className="mono muted">{a.commissionNote}</h2>}
               <p className="links mono">
-                {s.email && <a href={`mailto:${s.email}`}>Scrivimi →</a>}
+                {s.email && <a href={`mailto:${s.email}`}>{a.contactLabel}</a>}
                 {s.instagram && <a href={s.instagram}>Instagram</a>}
               </p>
             </section>
