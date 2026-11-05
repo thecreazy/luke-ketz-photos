@@ -289,6 +289,23 @@ test('on a phone the home is the same field: a tap focuses a face, a second tap 
   })
   const page = await context.newPage()
   await page.goto('/')
+  // Tilting the phone moves the faces.
+  const field = page.locator('.field.home')
+  // Browsers that ask for permission (iPhone, recent Chrome) get the request on the first tap.
+  await expect(field).toBeVisible()
+  await field.tap({ position: { x: 195, y: 430 } })
+  // Sent again on every attempt: the listener only exists once the page has hydrated.
+  await expect
+    .poll(async () => {
+      await page.evaluate(() => {
+        const tilt = (gamma: number) =>
+          window.dispatchEvent(new DeviceOrientationEvent('deviceorientation', { beta: 0, gamma }))
+        tilt(0)
+        tilt(15)
+      })
+      return Number(await field.evaluate((el) => el.style.getPropertyValue('--mx')))
+    })
+    .toBeGreaterThan(0.5)
   const card = page.locator('a.card').first()
   await card.tap()
   await expect(page.locator('h1.question')).toHaveText('Chi vedi, quando ti guardi?')
