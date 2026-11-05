@@ -139,6 +139,13 @@ button {
 .foot a {
   color: var(--muted);
 }
+/* Small links still need a 24px touch target. */
+.foot nav a,
+.legal a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+}
 .foot a:hover {
   color: var(--accent);
 }
@@ -548,7 +555,7 @@ button {
   padding: 8px 0;
   cursor: pointer;
   font-size: clamp(20px, 1.9vw, 26px);
-  color: var(--dim);
+  color: var(--muted);
 }
 .chip[aria-pressed='true'] {
   color: var(--fg);
@@ -678,13 +685,13 @@ button {
   height: auto;
   max-width: 100%;
   box-shadow: 0 60px 140px #000;
-  animation: appear 1.6s cubic-bezier(0.2, 0.7, 0.1, 1) both;
+  animation: appear 1.1s cubic-bezier(0.2, 0.7, 0.1, 1) both;
 }
 @keyframes appear {
   from {
-    filter: blur(18px);
-    opacity: 0;
-    transform: scale(0.9);
+    filter: blur(16px);
+    opacity: 0.5;
+    transform: scale(0.94);
   }
 }
 @media (prefers-reduced-motion: reduce) {
