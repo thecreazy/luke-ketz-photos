@@ -74,6 +74,7 @@ export default async function Home() {
       vt,
       href: about ? '/chi-e' : `/ritratti/${p.doc.slug}`,
       src: src.src,
+      small: src.srcSet.split(' ')[0],
       srcSet: src.srcSet,
       alt: about ? `Ritratto di ${s.siteName}` : fmt(it.portraits.alt, { n: p.n }),
       tag: about ? it.home.aboutCard : `N° ${String(p.n).padStart(2, '0')}`,

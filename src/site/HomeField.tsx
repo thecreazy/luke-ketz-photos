@@ -14,6 +14,8 @@ export type FieldCard = {
   key: string
   href: string
   src: string
+  // The smallest variant: enough for the soft faces behind the list.
+  small: string
   srcSet: string
   alt: string
   tag: string
@@ -231,7 +233,7 @@ export function HomeField({
           // eslint-disable-next-line @next/next/no-img-element
           <img
             key={c.key}
-            src={c.src}
+            src={c.small}
             alt=""
             loading="lazy"
             decoding="async"
@@ -260,6 +262,7 @@ export function HomeField({
               sizes={`(max-width: 760px) 80vw, ${(c.w / 14.4).toFixed(1)}vw`}
               alt={c.alt}
               loading={i < 3 ? 'eager' : 'lazy'}
+              fetchPriority={i === 0 ? 'high' : undefined}
               decoding="async"
             />
           )
@@ -269,6 +272,7 @@ export function HomeField({
               href={c.href}
               className="card"
               data-i={i}
+              data-first={i === 0 ? '' : undefined}
               data-side={c.side}
               data-repeat={c.repeat ? '' : undefined}
               data-list-only={c.listOnly ? '' : undefined}

@@ -1994,6 +1994,10 @@ main:focus {
     filter: blur(14px) grayscale(1);
     opacity: 0.2;
   }
+  /* The first face is sharp from the first paint; the scroll script takes over afterwards. */
+  .field.home .card[data-first] {
+    --near: 0.9;
+  }
   .field.home .card[data-side='1'] {
     align-self: flex-end;
   }

@@ -99,10 +99,9 @@ export function PortraitGrid({ items, series, copy: it }: Props) {
                   alt={t.alt}
                   width={t.width}
                   height={t.height}
-                  // The grid is in columns, so the top of each column is not the first items of the
-                  // list: the whole first page loads at once (small variants) and the tops get priority.
-                  loading={i < PAGE ? 'eager' : 'lazy'}
-                  fetchPriority={i < PAGE && i % 4 === 0 ? 'high' : undefined}
+                  // The first ones load at once; too many at once would slow the first of them down.
+                  loading={i < 4 ? 'eager' : 'lazy'}
+                  fetchPriority={i === 0 ? 'high' : undefined}
                   decoding="async"
                 />
               </ViewTransition>
