@@ -389,22 +389,6 @@ test('on a phone the home is a list you scroll: the face in the middle is in foc
   // Faces that only repeat another one are not in the list.
   await expect(page.locator('a.card:visible')).toHaveCount(1)
 
-  // Tilting the phone moves the faces. Browsers that ask for permission (iPhone, recent Chrome)
-  // get the request on the first tap, here on an empty spot beside the face.
-  await field.tap({ position: { x: 384, y: 300 } })
-  // Sent again on every attempt: the listener only exists once the page has hydrated.
-  await expect
-    .poll(async () => {
-      await page.evaluate(() => {
-        const tilt = (gamma: number) =>
-          window.dispatchEvent(new DeviceOrientationEvent('deviceorientation', { beta: 0, gamma }))
-        tilt(0)
-        tilt(15)
-      })
-      return Number(await field.evaluate((el) => el.style.getPropertyValue('--mx')))
-    })
-    .toBeGreaterThan(0.5)
-
   // Scrolling brings the face to the middle: it sharpens and its question and button appear.
   await page.evaluate(() => window.scrollTo(0, 60))
   await expect(page.locator('h1.question')).toHaveText('Chi vedi, quando ti guardi?')

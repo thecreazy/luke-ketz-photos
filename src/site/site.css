@@ -1906,8 +1906,6 @@ main:focus {
     top: auto;
     width: calc(78vw - var(--zl, 0.3) * 40vw);
     --s: 1;
-    --ax: -22px;
-    --ay: -14px;
     opacity: calc(0.4 + var(--near, 0) * 0.6);
     filter: blur(calc((1 - var(--near, 0)) * var(--zl, 0.3) * 10px));
     animation: none;
