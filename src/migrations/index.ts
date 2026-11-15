@@ -5,6 +5,7 @@ import * as migration_20261105_102141_gallery_viewer_copy from './20261105_10214
 import * as migration_20261105_102914_seo_fields from './20261105_102914_seo_fields';
 import * as migration_20261105_112701_home_phone_copy from './20261105_112701_home_phone_copy';
 import * as migration_20261115_164107_dicono_di_me from './20261115_164107_dicono_di_me';
+import * as migration_20261115_184909_dicono_di_me_domanda from './20261115_184909_dicono_di_me_domanda';
 
 export const migrations = [
   {
@@ -40,6 +41,11 @@ export const migrations = [
   {
     up: migration_20261115_164107_dicono_di_me.up,
     down: migration_20261115_164107_dicono_di_me.down,
-    name: '20261115_164107_dicono_di_me'
+    name: '20261115_164107_dicono_di_me',
+  },
+  {
+    up: migration_20261115_184909_dicono_di_me_domanda.up,
+    down: migration_20261115_184909_dicono_di_me_domanda.down,
+    name: '20261115_184909_dicono_di_me_domanda'
   },
 ];

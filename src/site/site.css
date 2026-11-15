@@ -1687,40 +1687,6 @@ main:focus {
   padding-top: 56px;
   font-size: 11px;
 }
-.say-ask {
-  position: relative;
-  display: grid;
-  gap: 14px;
-  max-width: 1080px;
-  margin: 48px 0 0;
-  padding: 36px 0 36px 32px;
-}
-.say-ask::before,
-.say-ask::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  width: 22px;
-  height: 22px;
-  border-left: 1.5px solid var(--accent);
-}
-.say-ask::before {
-  top: 0;
-  border-top: 1.5px solid var(--accent);
-}
-.say-ask::after {
-  bottom: 0;
-  border-bottom: 1.5px solid var(--accent);
-}
-.say-ask .mono {
-  font-size: 10px;
-}
-.say-ask h2 {
-  font-size: clamp(38px, 6.2vw, 92px);
-  line-height: 1.02;
-  font-weight: 400;
-  color: var(--fg);
-}
 .say-empty {
   margin-top: 48px;
 }
@@ -1786,6 +1752,20 @@ main:focus {
   letter-spacing: 0.2em;
   color: var(--accent);
 }
+.voice-ask {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.voice-question {
+  margin: 0 0 28px;
+  max-width: 28em;
+  font-size: clamp(20px, 2vw, 28px);
+  line-height: 1.2;
+  font-weight: 400;
+  color: var(--accent);
+}
 .voice-quote {
   margin: 0;
   font-size: clamp(28px, 3.6vw, 56px);
@@ -1806,6 +1786,14 @@ main:focus {
   width: 32px;
   height: 1.5px;
   background: var(--accent);
+}
+.voice-role {
+  color: var(--sub);
+}
+.voice-role::before {
+  content: '·';
+  margin-right: 14px;
+  color: var(--muted);
 }
 .voice-links {
   list-style: none;

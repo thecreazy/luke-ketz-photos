@@ -17,16 +17,16 @@ deleted, renamed or turned into another kind; the others are plain text pages (P
 that can be added freely. A page with a **Menu label** is in the menu (ordered by **Menu order**); text pages without
 one are listed in the footer.
 
-| Page                   | Route                       | Where the texts and content are edited                                                                  |
-| ---------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Home, "Campo di volti" | `/`                         | Pages → **Home** (words around the faces); faces: **Portraits** ticked **Show in the home field**       |
-| Portraits              | `/ritratti`                 | Pages → **Ritratti** (title, filters, buttons, portrait page labels); **Portraits**, **Series**         |
-| A portrait             | `/ritratti/<slug>`          | **Portraits**: question, a line from Luke, name/initials, series, year                                  |
-| Chi è                  | `/chi-e`                    | Pages → **Chi è** (title, texts, steps, exhibitions, contact link, portrait)                            |
-| Diary                  | `/diario`, `/diario/<slug>` | Pages → **Diario** (title, labels, topic names); **Diary**: each article picks one of 4 layouts         |
-| Dicono di me           | `/dicono-di-me`             | Pages → **Dicono di me** (the question, labels); **Testimonials**: photo, name, answer, social profiles |
-| Private galleries      | `/galleries/<slug>`         | **Private galleries** (password, expiry, counter); Pages → **Galleria privata** (the password screen)   |
-| Legal and other pages  | `/<slug>`                   | Pages (Privacy, Cookies: drafts to review and publish)                                                  |
+| Page                   | Route                       | Where the texts and content are edited                                                                                       |
+| ---------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Home, "Campo di volti" | `/`                         | Pages → **Home** (words around the faces); faces: **Portraits** ticked **Show in the home field**                            |
+| Portraits              | `/ritratti`                 | Pages → **Ritratti** (title, filters, buttons, portrait page labels); **Portraits**, **Series**                              |
+| A portrait             | `/ritratti/<slug>`          | **Portraits**: question, a line from Luke, name/initials, series, year                                                       |
+| Chi è                  | `/chi-e`                    | Pages → **Chi è** (title, texts, steps, exhibitions, contact link, portrait)                                                 |
+| Diary                  | `/diario`, `/diario/<slug>` | Pages → **Diario** (title, labels, topic names); **Diary**: each article picks one of 4 layouts                              |
+| Dicono di me           | `/dicono-di-me`             | Pages → **Dicono di me** (labels, standard question); **Testimonials**: photo, name, role, question, answer, social profiles |
+| Private galleries      | `/galleries/<slug>`         | **Private galleries** (password, expiry, counter); Pages → **Galleria privata** (the password screen)                        |
+| Legal and other pages  | `/<slug>`                   | Pages (Privacy, Cookies: drafts to review and publish)                                                                       |
 
 ### The home
 
@@ -46,8 +46,8 @@ slots. Layout and numbers: `src/app/(frontend)/page.tsx` (slots), `HomeField.tsx
 - **Diary layouts** (field **Layout** of the article): **A · Campo** (text, big quote, portrait), **B · Fotoracconto**
   (photos through the day), **C · Domande e risposte**, **D · Dietro lo scatto** (one photo, timeline, contact sheet).
   Only the fields of the chosen layout are shown.
-- **Dicono di me**: one fixed question (Pages → Dicono di me) and one answer per person in **Testimonials**: photo,
-  name or nickname, what they say, optional social profiles (a handle such as `@name`, or a full link; a website needs
+- **Dicono di me**: one entry per person in **Testimonials** (models, make-up artists, photographers): photo,
+  name or nickname, role, their own question (empty: the standard one of Pages → Dicono di me), what they say, optional social profiles (a handle such as `@name`, or a full link; a website needs
   the full link; only http(s) links are ever shown) and **Order**. They are saved as drafts like the portraits. The
   page stays out of the menu, the sitemap and search engines until the first answer is published.
 - **Sponsor** (any article, any layout): the group **Sponsor** of the article has name, logo, optional link and a

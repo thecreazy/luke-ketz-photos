@@ -410,7 +410,7 @@ export interface Post {
   _status?: ('draft' | 'published') | null;
 }
 /**
- * The answers of the people Luke photographed, shown on the "Dicono di me" page. The question is written once, in Pages → Dicono di me.
+ * The people who worked with Luke (models, make-up artists, photographers), shown on the "Dicono di me" page. Each one has their own question.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "testimonials".
@@ -418,9 +418,17 @@ export interface Post {
 export interface Testimonial {
   id: number;
   name: string;
+  /**
+   * Optional, shown by the name. For example: Modella, Modello, MUA, Fotografo.
+   */
+  role?: string | null;
   photo: number | Media;
   /**
-   * The answer to the question of the page, in their words.
+   * The question this person answers. If you leave it empty, the standard question of the page is used (Pages → Dicono di me).
+   */
+  question?: string | null;
+  /**
+   * The answer to their question, in their words.
    */
   quote: string;
   /**
@@ -601,7 +609,7 @@ export interface Page {
     kicker?: string | null;
     questionLabel?: string | null;
     /**
-     * The same question for every answer on the page.
+     * Shown for the people who have no question of their own (Testimonials).
      */
     question?: string | null;
     /**
@@ -977,7 +985,9 @@ export interface PostsSelect<T extends boolean = true> {
  */
 export interface TestimonialsSelect<T extends boolean = true> {
   name?: T;
+  role?: T;
   photo?: T;
+  question?: T;
   quote?: T;
   profiles?:
     | T

@@ -260,6 +260,8 @@ test.describe('with a logged-in admin', () => {
         ...json,
         data: {
           name: 'Giulia',
+          role: 'Modella',
+          question: 'Cosa hai pensato quando hai visto la foto?',
           photo: media.id,
           quote: 'Mi sono vista per la prima volta.',
           order: 1,
@@ -268,6 +270,20 @@ test.describe('with a logged-in admin', () => {
             { network: 'website', handle: 'javascript:alert(1)' },
             { network: 'tiktok', handle: 'https://www.tiktok.com/@giulia' },
           ],
+          _status: 'published',
+        },
+      }),
+    )
+    // Someone with no question of their own gets the standard one of the page.
+    await created(
+      await page.request.post('/api/testimonials', {
+        ...json,
+        data: {
+          name: 'Marco',
+          role: 'MUA',
+          photo: media.id,
+          quote: 'Un set tranquillo.',
+          order: 2,
           _status: 'published',
         },
       }),
@@ -281,11 +297,20 @@ test.describe('with a logged-in admin', () => {
     )
 
     await page.goto('/dicono-di-me')
-    await expect(page.locator('.voice')).toHaveCount(1)
+    await expect(page.locator('.voice')).toHaveCount(2)
     await expect(page.getByText('Mi sono vista per la prima volta.')).toBeVisible()
     await expect(page.getByText('Non ancora.')).toHaveCount(0)
-    await expect(page.getByText('Com’è stato farsi fotografare da Luke?')).toBeVisible()
-    await expect(page.locator('.voice img')).toHaveAttribute('alt', 'Foto di Giulia')
+    const giulia = page.locator('.voice').first()
+    await expect(giulia.getByRole('heading', { level: 2 })).toHaveText(
+      'Cosa hai pensato quando hai visto la foto?',
+    )
+    await expect(giulia.getByRole('heading', { level: 3 })).toContainText('Modella')
+    const marco = page.locator('.voice').nth(1)
+    await expect(marco.getByRole('heading', { level: 2 })).toHaveText(
+      'Com’è stato lavorare con me?',
+    )
+    await expect(marco.getByRole('heading', { level: 3 })).toContainText('MUA')
+    await expect(giulia.locator('img')).toHaveAttribute('alt', 'Foto di Giulia')
     // Only real web addresses become links: the "javascript:" one is dropped.
     const links = page.locator('.voice-links a')
     await expect(links).toHaveCount(2)
@@ -297,7 +322,7 @@ test.describe('with a logged-in admin', () => {
     expect(await (await request.get('/dicono-di-me')).text()).not.toContain('noindex')
     expect(await (await request.get('/sitemap.xml')).text()).toContain('/dicono-di-me')
 
-    // The question is a text of the page, edited in Pages.
+    // The standard question is a text of the page, edited in Pages.
     const { docs } = await (
       await page.request.get('/api/pages?where[slug][equals]=dicono-di-me&depth=0', json)
     ).json()
@@ -308,7 +333,10 @@ test.describe('with a logged-in admin', () => {
       }),
     )
     await page.goto('/dicono-di-me')
-    await expect(page.getByText('Cosa è cambiato, dopo?')).toBeVisible()
+    await expect(marco.getByRole('heading', { level: 2 })).toHaveText('Cosa è cambiato, dopo?')
+    await expect(giulia.getByRole('heading', { level: 2 })).toHaveText(
+      'Cosa hai pensato quando hai visto la foto?',
+    )
   })
 
   test('an article can have a sponsor, whatever its layout', async ({ page }) => {

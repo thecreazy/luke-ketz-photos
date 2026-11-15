@@ -41,11 +41,6 @@ export default async function Say() {
         <span className="mono accent say-kicker">{it.kicker}</span>
         <h1 className="serif big">{copy.titles.say}</h1>
 
-        <div className="say-ask">
-          <span className="mono muted">{it.questionLabel}</span>
-          <h2 className="serif">{it.question}</h2>
-        </div>
-
         {voices.length === 0 ? (
           <p className="muted body say-empty">{it.empty}</p>
         ) : (
@@ -77,10 +72,15 @@ export default async function Say() {
                       </figure>
                     )}
                     <div className="voice-text">
+                      <span className="mono voice-ask">{it.questionLabel}</span>
+                      <h2 className="serif voice-question">{v.question?.trim() || it.question}</h2>
                       <blockquote className="serif voice-quote">
                         <p>«{v.quote}»</p>
                       </blockquote>
-                      <h3 className="mono voice-name">{v.name}</h3>
+                      <h3 className="mono voice-name">
+                        {v.name}
+                        {v.role?.trim() && <span className="voice-role">{v.role.trim()}</span>}
+                      </h3>
                       {links.length > 0 && (
                         <ul className="voice-links mono" aria-label={`${it.profiles} · ${v.name}`}>
                           {links.map((l) => (

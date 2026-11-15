@@ -68,12 +68,12 @@ export const PAGE_COPY = {
     ],
   },
   say: {
-    kicker: ['Small line above the title', 'Chi è stato davanti all’obiettivo'],
-    questionLabel: ['Line above the question', 'La domanda'],
+    kicker: ['Small line above the title', 'Chi ha lavorato con me'],
+    questionLabel: ['Line above each question', 'La domanda'],
     question: [
-      'The question everyone answers',
-      'Com’è stato farsi fotografare da Luke?',
-      'The same question for every answer on the page.',
+      'Standard question',
+      'Com’è stato lavorare con me?',
+      'Shown for the people who have no question of their own (Testimonials).',
     ],
     alt: [
       'Fallback photo description',
@@ -148,7 +148,7 @@ export const DEFAULT_SEO = {
   diary: { description: 'Il diario di {siteName}: quello che succede prima e dopo lo scatto.' },
   say: {
     description:
-      'Cosa dicono di {siteName} le modelle e i modelli che ha ritratto: una domanda, tante risposte.',
+      'Le voci di modelle, modelli, truccatori e fotografi che hanno lavorato con {siteName}: ognuno con la sua domanda e la sua risposta.',
   },
 }
 
