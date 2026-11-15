@@ -4,7 +4,7 @@ import type { CollectionBeforeDeleteHook, Payload, PayloadRequest, Where } from 
 // Where each upload collection is referenced. Add an entry when a new collection or field
 // starts pointing at photos, otherwise they can be deleted while still in use.
 type Usage = {
-  collection: 'projects' | 'pages' | 'posts' | 'portraits' | 'private-galleries'
+  collection: 'projects' | 'pages' | 'posts' | 'portraits' | 'testimonials' | 'private-galleries'
   label: string
   where: (id: number | string) => Where
 }
@@ -40,7 +40,13 @@ const PUBLIC_USAGES: Usage[] = [
     label: 'article (contact sheet)',
     where: (id) => ({ 'timeline.frames': { equals: id } }),
   },
+  {
+    collection: 'posts',
+    label: 'article (sponsor logo)',
+    where: (id) => ({ 'sponsor.logo': { equals: id } }),
+  },
   seo('posts', 'article'),
+  { collection: 'testimonials', label: 'testimonial', where: (id) => ({ photo: { equals: id } }) },
 ]
 
 const PRIVATE_USAGES: Usage[] = [
@@ -69,8 +75,8 @@ const findUsages = async (
       req,
     })
     for (const d of docs) {
-      const named = d as { title?: string; question?: string }
-      found.push(`${u.label}: "${named.title ?? named.question ?? d.id}"`)
+      const named = d as { title?: string; question?: string; name?: string }
+      found.push(`${u.label}: "${named.title ?? named.question ?? named.name ?? d.id}"`)
     }
   }
   return found

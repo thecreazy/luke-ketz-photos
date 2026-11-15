@@ -187,6 +187,41 @@ export const Posts: CollectionConfig = {
         },
       ],
     },
+    {
+      // Every layout shows it, at the end of the article.
+      name: 'sponsor',
+      type: 'group',
+      label: 'Sponsor',
+      admin: { description: 'Optional. Leave empty for an article without a sponsor.' },
+      fields: [
+        { name: 'name', type: 'text', label: 'Sponsor name' },
+        {
+          name: 'logo',
+          type: 'upload',
+          relationTo: 'media',
+          label: 'Logo',
+          admin: {
+            description:
+              'A PNG with a transparent background works best. Add it with "Create new" here: do not use Upload photos, which turns it into a JPEG.',
+          },
+        },
+        {
+          name: 'url',
+          type: 'text',
+          label: 'Link (optional)',
+          admin: { description: 'The sponsor’s website, with https://.' },
+        },
+        {
+          name: 'lightLogo',
+          type: 'checkbox',
+          label: 'The logo is white or very light',
+          admin: {
+            description:
+              'Dark and coloured logos sit on a light plate. Tick this for a white logo, which is shown straight on the dark page.',
+          },
+        },
+      ],
+    },
     seoField,
   ],
   hooks: revalidateOnChange('post', 'posts'),

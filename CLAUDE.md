@@ -42,7 +42,9 @@ Italian, the admin in English. `README.md` explains how it works; this file is w
 
 - macOS is case-insensitive: do not create two files that differ only in case (`credit.ts` vs `Credit.tsx`).
 - React siblings need different keys: a heading and an SVG with the same `key` made old questions pile up.
-- A removed `.env.local` is not enough to switch database for e2e: `scripts/e2e.sh` sets its own environment.
+- A removed `.env.local` is not enough to switch database for e2e: `scripts/e2e.sh` sets its own environment. It
+  also sets the Upstash variables to empty (not unset): Next reads the real ones from `.env`, and the tests would use
+  up the login limit of the real site (HTTP 429).
 
 ## Before saying "done"
 

@@ -3,6 +3,7 @@ import React from 'react'
 
 import { Rich } from '@/components/Rich'
 import { getCopy, getSettings } from '@/lib/data'
+import { httpUrl } from '@/lib/links'
 import { photoSources } from '@/lib/photo'
 import type { Media, Post } from '@/payload-types'
 
@@ -57,6 +58,48 @@ function Pic({
   )
 }
 
+// The sponsor of an article, if it has one: the same block at the end of every layout.
+function Sponsor({ post, it }: { post: Post; it: Copy['diary'] }) {
+  const sponsor = post.sponsor
+  const name = sponsor?.name?.trim()
+  const logo = photoSources(sponsor?.logo)
+  if (!name && !logo) return null
+  const href = httpUrl(sponsor?.url)
+  const content = (
+    <>
+      {logo && (
+        <span className="sponsor-logo" data-light={sponsor?.lightLogo ? '' : undefined}>
+          {/* The name is written next to it: the logo alone would be read twice. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={logo.src}
+            srcSet={logo.srcSet}
+            sizes="160px"
+            alt={name ? '' : logo.alt}
+            width={logo.width}
+            height={logo.height}
+            loading="lazy"
+            decoding="async"
+          />
+        </span>
+      )}
+      {name && <span className="serif sponsor-name">{name}</span>}
+    </>
+  )
+  return (
+    <aside className="sponsor">
+      <span className="mono">{it.sponsor}</span>
+      {href ? (
+        <a href={href} target="_blank" rel="sponsored noopener noreferrer">
+          {content}
+        </a>
+      ) : (
+        <span className="sponsor-mark">{content}</span>
+      )}
+    </aside>
+  )
+}
+
 function NextPage({ next, it }: { next: Next; it: Copy['diary'] }) {
   if (!next) return null
   return (
@@ -92,6 +135,7 @@ export async function ArticleCampo({ post, next, faces }: Props) {
             <span className="corner tl" aria-hidden="true" />
           </figure>
         )}
+        <Sponsor post={post} it={it} />
         <NextPage next={next} it={it} />
       </main>
       <SiteFooter />
@@ -162,6 +206,7 @@ export async function ArticleFotoracconto({ post, next }: Props) {
           )
         })}
         <div className="wrap">
+          <Sponsor post={post} it={it} />
           <NextPage next={next} it={it} />
         </div>
       </main>
@@ -192,6 +237,7 @@ export async function ArticleDomande({ post, next }: Props) {
             </li>
           ))}
         </ol>
+        <Sponsor post={post} it={it} />
         <NextPage next={next} it={it} />
       </main>
       <SiteFooter />
@@ -267,6 +313,7 @@ export async function ArticleDietro({ post, next }: Props) {
             )
           })}
         </ol>
+        <Sponsor post={post} it={it} />
         <NextPage next={next} it={it} />
         <SiteFooter />
       </main>

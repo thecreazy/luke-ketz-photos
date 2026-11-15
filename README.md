@@ -12,20 +12,21 @@ Do / Martian Mono / Hedvig Letters Serif via `next/font`. All design code is in 
 
 **Every page of the site is a document in admin → Pages**, and the texts of a page are fields of that page (the
 Italian defaults are in `src/site/copy.ts`; an empty field shows the default). Nothing visible is written in the code
-except the 404 and error pages. Home, Chi è, Ritratti, Diario and Galleria privata always exist: they cannot be
+except the 404 and error pages. Home, Chi è, Ritratti, Diario, Dicono di me and Galleria privata always exist: they cannot be
 deleted, renamed or turned into another kind; the others are plain text pages (Privacy, Cookies, a contacts page...)
 that can be added freely. A page with a **Menu label** is in the menu (ordered by **Menu order**); text pages without
 one are listed in the footer.
 
-| Page                   | Route                       | Where the texts and content are edited                                                                |
-| ---------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Home, "Campo di volti" | `/`                         | Pages → **Home** (words around the faces); faces: **Portraits** ticked **Show in the home field**     |
-| Portraits              | `/ritratti`                 | Pages → **Ritratti** (title, filters, buttons, portrait page labels); **Portraits**, **Series**       |
-| A portrait             | `/ritratti/<slug>`          | **Portraits**: question, a line from Luke, name/initials, series, year                                |
-| Chi è                  | `/chi-e`                    | Pages → **Chi è** (title, texts, steps, exhibitions, contact link, portrait)                          |
-| Diary                  | `/diario`, `/diario/<slug>` | Pages → **Diario** (title, labels, topic names); **Diary**: each article picks one of 4 layouts       |
-| Private galleries      | `/galleries/<slug>`         | **Private galleries** (password, expiry, counter); Pages → **Galleria privata** (the password screen) |
-| Legal and other pages  | `/<slug>`                   | Pages (Privacy, Cookies: drafts to review and publish)                                                |
+| Page                   | Route                       | Where the texts and content are edited                                                                  |
+| ---------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Home, "Campo di volti" | `/`                         | Pages → **Home** (words around the faces); faces: **Portraits** ticked **Show in the home field**       |
+| Portraits              | `/ritratti`                 | Pages → **Ritratti** (title, filters, buttons, portrait page labels); **Portraits**, **Series**         |
+| A portrait             | `/ritratti/<slug>`          | **Portraits**: question, a line from Luke, name/initials, series, year                                  |
+| Chi è                  | `/chi-e`                    | Pages → **Chi è** (title, texts, steps, exhibitions, contact link, portrait)                            |
+| Diary                  | `/diario`, `/diario/<slug>` | Pages → **Diario** (title, labels, topic names); **Diary**: each article picks one of 4 layouts         |
+| Dicono di me           | `/dicono-di-me`             | Pages → **Dicono di me** (the question, labels); **Testimonials**: photo, name, answer, social profiles |
+| Private galleries      | `/galleries/<slug>`         | **Private galleries** (password, expiry, counter); Pages → **Galleria privata** (the password screen)   |
+| Legal and other pages  | `/<slug>`                   | Pages (Privacy, Cookies: drafts to review and publish)                                                  |
 
 ### The home
 
@@ -45,6 +46,14 @@ slots. Layout and numbers: `src/app/(frontend)/page.tsx` (slots), `HomeField.tsx
 - **Diary layouts** (field **Layout** of the article): **A · Campo** (text, big quote, portrait), **B · Fotoracconto**
   (photos through the day), **C · Domande e risposte**, **D · Dietro lo scatto** (one photo, timeline, contact sheet).
   Only the fields of the chosen layout are shown.
+- **Dicono di me**: one fixed question (Pages → Dicono di me) and one answer per person in **Testimonials**: photo,
+  name or nickname, what they say, optional social profiles (a handle such as `@name`, or a full link; a website needs
+  the full link; only http(s) links are ever shown) and **Order**. They are saved as drafts like the portraits. The
+  page stays out of the menu, the sitemap and search engines until the first answer is published.
+- **Sponsor** (any article, any layout): the group **Sponsor** of the article has name, logo, optional link and a
+  "light logo" tick. It is shown at the end of the article, on a light plate unless the logo is light, and the link is
+  `rel="sponsored"`. Add the logo with "Create new" in the field: Upload photos turns images into JPEG and loses the
+  transparency of a PNG. The label ("In collaborazione con") is a text of Pages → Diario.
 - **Private galleries**: a photo opens full screen (arrows, keyboard, swipe) with a "download" button for the
   full-size file (signed link, 1 hour). Texts of the viewer: Pages → Galleria privata.
 - **Exhibitions, steps and the portrait of Luke** are fields of Pages → Chi è.
@@ -181,7 +190,7 @@ malformed one fails immediately with a readable list instead of a cryptic error 
 `pnpm test:e2e` (needs Docker and Chrome) starts Postgres + MinIO from `docker-compose.yml`, creates an empty `e2e`
 database, builds the site and runs Playwright against it (`e2e/smoke.spec.ts`, about 20 seconds): first admin and login,
 photo upload, a published portrait showing on the site and a draft not, the in-use delete guard, the page texts and
-menu edited from the admin, an article in each layout, a private gallery (wrong/right password, viewer and download,
+menu edited from the admin, an article in each layout, "Dicono di me" (answers, safe links, menu, sitemap), the sponsor in every layout, a private gallery (wrong/right password, viewer and download,
 access counter, expiry), SEO (descriptions, structured data, image sitemap), social images and icons, the signature,
 keyboard skip link and landmarks, the phone home (scroll, focus, one tap), the transition between pages, and security
 headers. CI runs the same job. Run it before copying changes from the template to existing clients (not while

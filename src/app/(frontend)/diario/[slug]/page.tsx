@@ -6,7 +6,9 @@ import { JsonLd } from '@/components/JsonLd'
 import { getCopy, getPortraits, getPost, getPosts, getPostSlugs, getSettings } from '@/lib/data'
 import { env } from '@/lib/env'
 import { breadcrumb } from '@/lib/jsonld'
+import { httpUrl } from '@/lib/links'
 import { defaultOgImage, seoMetadata } from '@/lib/metadata'
+import { photoSources } from '@/lib/photo'
 import { staticSlugParams } from '@/lib/static-params'
 import { ArticleCampo, ArticleDietro, ArticleDomande, ArticleFotoracconto } from '@/site/articles'
 
@@ -50,6 +52,7 @@ async function ArticleView({ params }: Props) {
   const faces = portraits.slice(0, 8).map((p) => p.doc.image)
   const cover = typeof post.cover === 'object' && post.cover ? post.cover.url : undefined
 
+  const sponsorName = post.sponsor?.name?.trim()
   const view = { post, next, faces }
   return (
     <>
@@ -70,6 +73,14 @@ async function ArticleView({ params }: Props) {
             dateModified: post.updatedAt,
             mainEntityOfPage: `${env.NEXT_PUBLIC_SITE_URL}/diario/${post.slug}`,
             author: { '@type': 'Person', name: s.siteName },
+            sponsor: sponsorName
+              ? {
+                  '@type': 'Organization',
+                  name: sponsorName,
+                  url: httpUrl(post.sponsor?.url) ?? undefined,
+                  logo: photoSources(post.sponsor?.logo)?.src,
+                }
+              : undefined,
           },
         ]}
       />

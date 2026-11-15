@@ -201,7 +201,14 @@ test.describe('with a logged-in admin', () => {
   }) => {
     const { docs } = await (await page.request.get('/api/pages?limit=50&depth=0', json)).json()
     const bySlug = Object.fromEntries(docs.map((d: { slug: string }) => [d.slug, d]))
-    for (const slug of ['home', 'chi-e', 'ritratti', 'diario', 'galleria-privata']) {
+    for (const slug of [
+      'home',
+      'chi-e',
+      'ritratti',
+      'diario',
+      'dicono-di-me',
+      'galleria-privata',
+    ]) {
       expect(bySlug[slug], slug).toBeTruthy()
     }
 
@@ -233,6 +240,135 @@ test.describe('with a logged-in admin', () => {
     expect([again.slug, again.kind]).toEqual(['diario', 'diary'])
     // ...and they are not served as plain text pages.
     expect(await (await request.get('/galleria-privata')).text()).toContain('Pagina non trovata')
+  })
+
+  test('"Dicono di me" shows the published answers with safe links, and joins the menu with the first one', async ({
+    page,
+    request,
+  }) => {
+    const nav = page.getByRole('navigation', { name: 'Principale' })
+    // Nothing published yet: the page says so, and it is not advertised anywhere.
+    await page.goto('/dicono-di-me')
+    await expect(page.getByText('Le prime voci arrivano presto.')).toBeVisible()
+    await expect(nav.getByText('Dicono di me')).toHaveCount(0)
+    expect(await (await request.get('/dicono-di-me')).text()).toContain('noindex')
+    expect(await (await request.get('/sitemap.xml')).text()).not.toContain('/dicono-di-me')
+
+    const media = (await (await page.request.get('/api/media?limit=1')).json()).docs[0]
+    await created(
+      await page.request.post('/api/testimonials', {
+        ...json,
+        data: {
+          name: 'Giulia',
+          photo: media.id,
+          quote: 'Mi sono vista per la prima volta.',
+          order: 1,
+          profiles: [
+            { network: 'instagram', handle: '@giulia.rossi' },
+            { network: 'website', handle: 'javascript:alert(1)' },
+            { network: 'tiktok', handle: 'https://www.tiktok.com/@giulia' },
+          ],
+          _status: 'published',
+        },
+      }),
+    )
+    // A draft stays private.
+    await created(
+      await page.request.post('/api/testimonials?draft=true', {
+        ...json,
+        data: { name: 'Bozza', photo: media.id, quote: 'Non ancora.', _status: 'draft' },
+      }),
+    )
+
+    await page.goto('/dicono-di-me')
+    await expect(page.locator('.voice')).toHaveCount(1)
+    await expect(page.getByText('Mi sono vista per la prima volta.')).toBeVisible()
+    await expect(page.getByText('Non ancora.')).toHaveCount(0)
+    await expect(page.getByText('Com’è stato farsi fotografare da Luke?')).toBeVisible()
+    await expect(page.locator('.voice img')).toHaveAttribute('alt', 'Foto di Giulia')
+    // Only real web addresses become links: the "javascript:" one is dropped.
+    const links = page.locator('.voice-links a')
+    await expect(links).toHaveCount(2)
+    await expect(links.first()).toHaveAttribute('href', 'https://www.instagram.com/giulia.rossi')
+    await expect(links.nth(1)).toHaveAttribute('href', 'https://www.tiktok.com/@giulia')
+    await expect(links.first()).toHaveAttribute('rel', /noopener/)
+    expect(await page.content()).not.toContain('href="javascript:')
+    await expect(nav.getByText('Dicono di me')).toBeVisible()
+    expect(await (await request.get('/dicono-di-me')).text()).not.toContain('noindex')
+    expect(await (await request.get('/sitemap.xml')).text()).toContain('/dicono-di-me')
+
+    // The question is a text of the page, edited in Pages.
+    const { docs } = await (
+      await page.request.get('/api/pages?where[slug][equals]=dicono-di-me&depth=0', json)
+    ).json()
+    await created(
+      await page.request.patch(`/api/pages/${docs[0].id}`, {
+        ...json,
+        data: { say: { question: 'Cosa è cambiato, dopo?' }, _status: 'published' },
+      }),
+    )
+    await page.goto('/dicono-di-me')
+    await expect(page.getByText('Cosa è cambiato, dopo?')).toBeVisible()
+  })
+
+  test('an article can have a sponsor, whatever its layout', async ({ page }) => {
+    const media = (await (await page.request.get('/api/media?limit=1')).json()).docs[0]
+    const sponsor = { name: 'Marca di prova', url: 'https://example.com/', logo: media.id }
+    const layouts = {
+      campo: {},
+      fotoracconto: { intro: 'Una giornata.' },
+      domande: { qa: [{ question: 'Perché?', answer: 'Perché sì.' }] },
+      dietro: { timeline: [{ label: '17:00 · Prova', text: 'Testo.' }] },
+    }
+    for (const [layout, extra] of Object.entries(layouts)) {
+      await created(
+        await page.request.post('/api/posts', {
+          ...json,
+          data: {
+            title: `Sponsor ${layout}`,
+            layout,
+            theme: 'mostre',
+            cover: media.id,
+            sponsor,
+            ...extra,
+            _status: 'published',
+          },
+        }),
+      )
+      await page.goto(`/diario/sponsor-${layout}`)
+      const box = page.locator('.sponsor')
+      await expect(box, layout).toContainText('In collaborazione con')
+      await expect(box, layout).toContainText('Marca di prova')
+      await expect(box.locator('a'), layout).toHaveAttribute('href', 'https://example.com/')
+      await expect(box.locator('a'), layout).toHaveAttribute('rel', /sponsored/)
+      // The name is written next to the logo, so the logo itself is not read out twice.
+      await expect(box.locator('img'), layout).toHaveAttribute('alt', '')
+    }
+
+    // No sponsor, no block; an address that is not http(s) never becomes a link.
+    await created(
+      await page.request.post('/api/posts', {
+        ...json,
+        data: { title: 'Senza sponsor', layout: 'campo', theme: 'mostre', _status: 'published' },
+      }),
+    )
+    await page.goto('/diario/senza-sponsor')
+    await expect(page.locator('.sponsor')).toHaveCount(0)
+    await created(
+      await page.request.post('/api/posts', {
+        ...json,
+        data: {
+          title: 'Sponsor senza link',
+          layout: 'campo',
+          theme: 'mostre',
+          sponsor: { name: 'Solo nome', url: 'javascript:alert(1)' },
+          _status: 'published',
+        },
+      }),
+    )
+    await page.goto('/diario/sponsor-senza-link')
+    await expect(page.locator('.sponsor')).toContainText('Solo nome')
+    await expect(page.locator('.sponsor a')).toHaveCount(0)
   })
 
   test('search engines get descriptions, structured data and an image sitemap', async ({
@@ -425,7 +561,7 @@ test('shared links get a preview image, and the site has its icons', async ({ re
 test('the maker signs the footer of the pages and the home, with a link to their site', async ({
   request,
 }) => {
-  for (const path of ['/', '/ritratti', '/chi-e', '/diario']) {
+  for (const path of ['/', '/ritratti', '/chi-e', '/diario', '/dicono-di-me']) {
     const html = await (await request.get(path)).text()
     expect(html, path).toContain('fatto a mano da')
     expect(html, path).toContain('href="https://canellariccardo.it/')
@@ -444,7 +580,7 @@ test('keyboard users can skip to the content and every page has a main landmark'
   await page.keyboard.press('Enter')
   await expect(page.locator('main#main')).toBeFocused()
 
-  for (const path of ['/', '/ritratti', '/chi-e', '/diario']) {
+  for (const path of ['/', '/ritratti', '/chi-e', '/diario', '/dicono-di-me']) {
     const html = await (await request.get(path)).text()
     expect(html.match(/<main[ >]/g)?.length, `${path} has one main`).toBe(1)
   }

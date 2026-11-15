@@ -1673,6 +1673,234 @@ main:focus {
   justify-content: center;
 }
 
+/* Dicono di me: one question, every answer with the face that gave it. Each photo starts out of
+   focus and comes into focus as it enters the screen (see the Motion section). */
+.say > main {
+  padding-bottom: 96px;
+}
+.say > main > h1.big {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.say-kicker {
+  display: block;
+  padding-top: 56px;
+  font-size: 11px;
+}
+.say-ask {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  max-width: 1080px;
+  margin: 48px 0 0;
+  padding: 36px 0 36px 32px;
+}
+.say-ask::before,
+.say-ask::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 22px;
+  height: 22px;
+  border-left: 1.5px solid var(--accent);
+}
+.say-ask::before {
+  top: 0;
+  border-top: 1.5px solid var(--accent);
+}
+.say-ask::after {
+  bottom: 0;
+  border-bottom: 1.5px solid var(--accent);
+}
+.say-ask .mono {
+  font-size: 10px;
+}
+.say-ask h2 {
+  font-size: clamp(38px, 6.2vw, 92px);
+  line-height: 1.02;
+  font-weight: 400;
+  color: var(--fg);
+}
+.say-empty {
+  margin-top: 48px;
+}
+.voices {
+  list-style: none;
+  padding: 0;
+  margin: clamp(56px, 9vw, 112px) 0 0;
+  display: grid;
+  gap: clamp(72px, 11vw, 150px);
+  counter-reset: voice;
+}
+.voices > li {
+  counter-increment: voice;
+}
+.voice {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: clamp(28px, 6vw, 96px);
+  align-items: center;
+}
+.voices > li:nth-child(even) .voice {
+  grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+}
+.voices > li:nth-child(even) .voice-photo {
+  order: 2;
+}
+.voice-photo {
+  position: relative;
+  margin: 0;
+}
+.voice-photo img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  height: auto;
+  object-fit: cover;
+}
+/* The viewfinder: four corners around the frame. */
+.voice-photo::before {
+  --c: linear-gradient(var(--accent), var(--accent));
+  content: '';
+  position: absolute;
+  inset: -12px;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    var(--c) 0 0 / 26px 1.5px,
+    var(--c) 0 0 / 1.5px 26px,
+    var(--c) 100% 0 / 26px 1.5px,
+    var(--c) 100% 0 / 1.5px 26px,
+    var(--c) 0 100% / 26px 1.5px,
+    var(--c) 0 100% / 1.5px 26px,
+    var(--c) 100% 100% / 26px 1.5px,
+    var(--c) 100% 100% / 1.5px 26px;
+  background-repeat: no-repeat;
+}
+.voice-text::before {
+  content: counter(voice, decimal-leading-zero);
+  display: block;
+  margin-bottom: 28px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+}
+.voice-quote {
+  margin: 0;
+  font-size: clamp(28px, 3.6vw, 56px);
+  line-height: 1.12;
+  white-space: pre-line;
+}
+.voice-name {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 32px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--fg);
+}
+.voice-name::before {
+  content: '';
+  width: 32px;
+  height: 1.5px;
+  background: var(--accent);
+}
+.voice-links {
+  list-style: none;
+  padding: 0;
+  margin: 14px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 11px;
+}
+.voice-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  min-height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  color: var(--sub);
+}
+.voice-links .net {
+  color: var(--muted);
+}
+.voice-links a:hover,
+.voice-links a:hover .net {
+  color: var(--accent);
+}
+.voice-links a:hover {
+  border-color: var(--accent);
+}
+@media (max-width: 760px) {
+  .voice,
+  .voices > li:nth-child(even) .voice {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 36px;
+  }
+  .voices > li:nth-child(even) .voice-photo {
+    order: 0;
+  }
+  .voice-photo {
+    margin: 12px;
+  }
+  .voice-text::before {
+    margin-bottom: 20px;
+  }
+  .voice-quote {
+    font-size: clamp(26px, 7.4vw, 36px);
+  }
+}
+
+/* The sponsor of an article, at the end of every layout. */
+.sponsor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 22px;
+  border-top: 1px solid var(--line);
+  padding-top: 24px;
+  margin-top: 40px;
+}
+.sponsor > .mono {
+  font-size: 10px;
+  color: var(--muted);
+}
+.sponsor a,
+.sponsor-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+}
+.sponsor a:hover .sponsor-name {
+  color: var(--accent);
+}
+.sponsor-logo {
+  display: inline-flex;
+  align-items: center;
+  background: #f2eee8;
+  padding: 10px 16px;
+  border-radius: 3px;
+}
+.sponsor-logo[data-light] {
+  background: none;
+  padding: 0;
+}
+.sponsor-logo img {
+  width: auto;
+  height: auto;
+  max-width: 160px;
+  max-height: 44px;
+}
+.sponsor-name {
+  font-size: 24px;
+  line-height: 1.1;
+}
+
 /* ───────────────────────── Motion ─────────────────────────
    Everything below is decoration: it is off for visitors who ask for reduced motion and where the
    browser lacks the feature, and the site works the same without it. */
@@ -1775,6 +2003,36 @@ main:focus {
         opacity: 0;
         translate: 0 40px;
         scale: 0.96;
+      }
+    }
+  }
+}
+
+/* Dicono di me: each photo comes into focus as it enters, its words follow. The first one is
+   already on screen, so its words stay still. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .voice-photo img {
+      animation: say-focus linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+    .voices > li:not(:first-child) .voice-text {
+      animation: say-words linear both;
+      animation-timeline: view();
+      animation-range: entry 15% entry 85%;
+    }
+    @keyframes say-focus {
+      from {
+        filter: blur(22px) grayscale(1);
+        scale: 1.05;
+      }
+    }
+    @keyframes say-words {
+      from {
+        opacity: 0.15;
+        filter: blur(8px);
+        translate: 0 28px;
       }
     }
   }

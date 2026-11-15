@@ -24,7 +24,10 @@ export S3_PRIVATE_BUCKET=photos-private
 export S3_PUBLIC_URL=http://localhost:9100/photos-public
 export S3_FORCE_PATH_STYLE=true
 # The attempt limits are off without Upstash credentials (they would also block repeated logins).
-unset UPSTASH_REDIS_REST_URL UPSTASH_REDIS_REST_TOKEN
+# Empty, not unset: Next would read the real ones from .env, and the tests would use up the limit of
+# the real login.
+export UPSTASH_REDIS_REST_URL=
+export UPSTASH_REDIS_REST_TOKEN=
 
 pnpm payload migrate
 pnpm build

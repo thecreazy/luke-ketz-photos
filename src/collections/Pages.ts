@@ -129,14 +129,14 @@ export const Pages: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', 'menuOrder', '_status'],
     description:
-      'Every page of the site. Home, Chi è, Ritratti, Diario and Galleria privata hold the texts of their page and cannot be deleted. Add your own text pages (e.g. contacts) with "Create new".',
+      'Every page of the site. Home, Chi è, Ritratti, Diario, Dicono di me and Galleria privata hold the texts of their page and cannot be deleted. Add your own text pages (e.g. contacts) with "Create new".',
   },
   fields: [
     {
       name: 'kind',
       type: 'select',
       defaultValue: 'text',
-      options: ['text', 'home', 'about', 'portraits', 'diary', 'gate'],
+      options: ['text', 'home', 'about', 'portraits', 'diary', 'say', 'gate'],
       admin: { hidden: true },
     },
     { name: 'title', type: 'text', required: true, label: 'Title' },
@@ -167,6 +167,11 @@ export const Pages: CollectionConfig = {
     aboutGroup,
     copyGroup('portraits', 'Texts of the portraits pages', 'The grid and each portrait page.'),
     copyGroup('diary', 'Texts of the diary', 'The diary list and its article pages.'),
+    copyGroup(
+      'say',
+      'Texts of "Dicono di me"',
+      'The question and the words around the answers. The answers themselves are in Testimonials.',
+    ),
     copyGroup(
       'gate',
       'Texts of the private gallery',

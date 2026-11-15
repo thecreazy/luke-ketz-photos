@@ -14,6 +14,7 @@ import { Posts } from './collections/Posts'
 import { PrivateGalleries } from './collections/PrivateGalleries'
 import { PrivateMedia } from './collections/PrivateMedia'
 import { Projects } from './collections/Projects'
+import { Testimonials } from './collections/Testimonials'
 import { Users } from './collections/Users'
 import { SiteSettings } from './globals/SiteSettings'
 import { env } from './lib/env'
@@ -52,7 +53,17 @@ export default buildConfig({
     },
     meta: { titleSuffix: ' — Admin' },
   },
-  collections: [Portraits, Projects, Posts, Pages, PrivateGalleries, Media, PrivateMedia, Users],
+  collections: [
+    Portraits,
+    Projects,
+    Posts,
+    Testimonials,
+    Pages,
+    PrivateGalleries,
+    Media,
+    PrivateMedia,
+    Users,
+  ],
   globals: [SiteSettings],
   editor: lexicalEditor(),
   secret: env.PAYLOAD_SECRET,

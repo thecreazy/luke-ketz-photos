@@ -52,7 +52,13 @@ export const seoMetadata = (
   }
 }
 
-const PATH = { home: '/', portraits: '/ritratti', about: '/chi-e', diary: '/diario' } as const
+const PATH = {
+  home: '/',
+  portraits: '/ritratti',
+  about: '/chi-e',
+  diary: '/diario',
+  say: '/dicono-di-me',
+} as const
 
 /** Metadata of the main pages: their SEO fields in Pages, else sensible defaults. */
 export async function systemMetadata(kind: keyof typeof PATH): Promise<Metadata> {

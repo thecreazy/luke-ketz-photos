@@ -6,7 +6,7 @@ import { absolute } from '@/lib/jsonld'
 // Private galleries are intentionally absent. Photos are listed with their pages so that search
 // engines can show them in image results.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const { pages, system, portraits, posts } = await getSitemapEntries()
+  const { pages, system, portraits, posts, voices } = await getSitemapEntries()
   const entry = (path: string, lastModified?: string, image?: string | null) => ({
     url: absolute(path),
     lastModified,
@@ -18,6 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entry('/chi-e', system['chi-e']),
     entry('/ritratti', system['ritratti']),
     entry('/diario', system['diario']),
+    ...(voices > 0 ? [entry('/dicono-di-me', system['dicono-di-me'])] : []),
     ...pages.map((d) => entry(`/${d.slug}`, d.updatedAt)),
     ...portraits.map((d) => entry(`/ritratti/${d.slug}`, d.updatedAt, d.imageUrl)),
     ...posts.map((d) => entry(`/diario/${d.slug}`, d.updatedAt, d.imageUrl)),

@@ -70,6 +70,7 @@ export interface Config {
     portraits: Portrait;
     projects: Project;
     posts: Post;
+    testimonials: Testimonial;
     pages: Page;
     'private-galleries': PrivateGallery;
     media: Media;
@@ -85,6 +86,7 @@ export interface Config {
     portraits: PortraitsSelect<false> | PortraitsSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
+    testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     'private-galleries': PrivateGalleriesSelect<false> | PrivateGalleriesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -374,6 +376,24 @@ export interface Post {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Optional. Leave empty for an article without a sponsor.
+   */
+  sponsor?: {
+    name?: string | null;
+    /**
+     * A PNG with a transparent background works best. Add it with "Create new" here: do not use Upload photos, which turns it into a JPEG.
+     */
+    logo?: (number | null) | Media;
+    /**
+     * The sponsor’s website, with https://.
+     */
+    url?: string | null;
+    /**
+     * Dark and coloured logos sit on a light plate. Tick this for a white logo, which is shown straight on the dark page.
+     */
+    lightLogo?: boolean | null;
+  };
   seo?: {
     /**
      * Max ~60 characters
@@ -390,14 +410,49 @@ export interface Post {
   _status?: ('draft' | 'published') | null;
 }
 /**
- * Every page of the site. Home, Chi è, Ritratti, Diario and Galleria privata hold the texts of their page and cannot be deleted. Add your own text pages (e.g. contacts) with "Create new".
+ * The answers of the people Luke photographed, shown on the "Dicono di me" page. The question is written once, in Pages → Dicono di me.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "testimonials".
+ */
+export interface Testimonial {
+  id: number;
+  name: string;
+  photo: number | Media;
+  /**
+   * The answer to the question of the page, in their words.
+   */
+  quote: string;
+  /**
+   * Optional. Shown under the answer, in this order.
+   */
+  profiles?:
+    | {
+        network: 'instagram' | 'tiktok' | 'facebook' | 'x' | 'youtube' | 'website';
+        /**
+         * The handle (@name) or the full link of the profile. A website needs the full link.
+         */
+        handle: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Lower = first.
+   */
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Every page of the site. Home, Chi è, Ritratti, Diario, Dicono di me and Galleria privata hold the texts of their page and cannot be deleted. Add your own text pages (e.g. contacts) with "Create new".
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages".
  */
 export interface Page {
   id: number;
-  kind?: ('text' | 'home' | 'about' | 'portraits' | 'diary' | 'gate') | null;
+  kind?: ('text' | 'home' | 'about' | 'portraits' | 'diary' | 'say' | 'gate') | null;
   title: string;
   /**
    * Generated from the title if left empty
@@ -534,6 +589,27 @@ export interface Page {
     themeVita?: string | null;
     themeMostre?: string | null;
     themeDietro?: string | null;
+    /**
+     * Shown at the end of the articles that have a sponsor.
+     */
+    sponsor?: string | null;
+  };
+  /**
+   * The question and the words around the answers. The answers themselves are in Testimonials.
+   */
+  say?: {
+    kicker?: string | null;
+    questionLabel?: string | null;
+    /**
+     * The same question for every answer on the page.
+     */
+    question?: string | null;
+    /**
+     * Used when a photo has no description of its own. {name} is the person’s name.
+     */
+    alt?: string | null;
+    profiles?: string | null;
+    empty?: string | null;
   };
   /**
    * The screen where a client types the password. The page itself is not public.
@@ -714,6 +790,10 @@ export interface PayloadLockedDocument {
         value: number | Post;
       } | null)
     | ({
+        relationTo: 'testimonials';
+        value: number | Testimonial;
+      } | null)
+    | ({
         relationTo: 'pages';
         value: number | Page;
       } | null)
@@ -872,6 +952,14 @@ export interface PostsSelect<T extends boolean = true> {
         chosen?: T;
         id?: T;
       };
+  sponsor?:
+    | T
+    | {
+        name?: T;
+        logo?: T;
+        url?: T;
+        lightLogo?: T;
+      };
   seo?:
     | T
     | {
@@ -879,6 +967,26 @@ export interface PostsSelect<T extends boolean = true> {
         description?: T;
         image?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "testimonials_select".
+ */
+export interface TestimonialsSelect<T extends boolean = true> {
+  name?: T;
+  photo?: T;
+  quote?: T;
+  profiles?:
+    | T
+    | {
+        network?: T;
+        handle?: T;
+        id?: T;
+      };
+  order?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -977,6 +1085,17 @@ export interface PagesSelect<T extends boolean = true> {
         themeVita?: T;
         themeMostre?: T;
         themeDietro?: T;
+        sponsor?: T;
+      };
+  say?:
+    | T
+    | {
+        kicker?: T;
+        questionLabel?: T;
+        question?: T;
+        alt?: T;
+        profiles?: T;
+        empty?: T;
       };
   gate?:
     | T

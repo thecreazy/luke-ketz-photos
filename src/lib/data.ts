@@ -21,7 +21,8 @@ export async function getSettings() {
   return (await payload()).findGlobal({ slug: 'site-settings', depth: 1 })
 }
 
-// The pages the site is built around hold its texts: home, about, portraits, diary, private gallery.
+// The pages the site is built around hold its texts: home, about, portraits, diary, "Dicono di me",
+// private gallery.
 async function systemPages() {
   const { docs } = await (
     await payload()
@@ -29,7 +30,7 @@ async function systemPages() {
     collection: 'pages',
     depth: 1,
     pagination: false,
-    where: { ...published, kind: { in: ['home', 'about', 'portraits', 'diary', 'gate'] } },
+    where: { ...published, kind: { in: ['home', 'about', 'portraits', 'diary', 'say', 'gate'] } },
   })
   return docs
 }
@@ -46,14 +47,20 @@ export async function getCopy() {
       home: group('home'),
       portraits: group('portraits'),
       diary: group('diary'),
+      say: group('say'),
       gate: group('gate'),
     }),
-    titles: { about: title('about'), portraits: title('portraits'), diary: title('diary') },
+    titles: {
+      about: title('about'),
+      portraits: title('portraits'),
+      diary: title('diary'),
+      say: title('say'),
+    },
   }
 }
 
 /** What the editor wrote in the SEO fields of a main page (empty fields are undefined). */
-export async function getPageSeo(kind: 'home' | 'portraits' | 'about' | 'diary') {
+export async function getPageSeo(kind: 'home' | 'portraits' | 'about' | 'diary' | 'say') {
   cacheTag('pages', 'media')
   cacheLife('max')
   const seo = (await systemPages()).find((d) => d.kind === kind)?.seo
@@ -74,11 +81,10 @@ export async function getAbout() {
 
 /** The menu: pages with a menu label, in order. */
 export async function getMenu() {
-  cacheTag('pages')
+  cacheTag('pages', 'testimonials')
   cacheLife('max')
-  const { docs } = await (
-    await payload()
-  ).find({
+  const p = await payload()
+  const { docs } = await p.find({
     collection: 'pages',
     depth: 0,
     pagination: false,
@@ -86,8 +92,13 @@ export async function getMenu() {
     select: { slug: true, menuLabel: true, menuOrder: true, kind: true },
     where: { ...published, menuLabel: { exists: true } },
   })
-  return docs
-    .filter((d) => d.menuLabel?.trim())
+  const items = docs.filter((d) => d.menuLabel?.trim())
+  // "Dicono di me" stays out of the menu until there is a first answer to show.
+  const voices = items.some((d) => d.kind === 'say')
+    ? (await p.count({ collection: 'testimonials', where: published })).totalDocs
+    : 0
+  return items
+    .filter((d) => d.kind !== 'say' || voices > 0)
     .map((d) => ({ key: d.slug, href: `/${d.slug}`, label: d.menuLabel as string }))
 }
 
@@ -187,6 +198,22 @@ export async function getSeries() {
   return docs
 }
 
+// The answers of "Dicono di me", in order.
+export async function getTestimonials() {
+  cacheTag('testimonials', 'media')
+  cacheLife('max')
+  const { docs } = await (
+    await payload()
+  ).find({
+    collection: 'testimonials',
+    depth: 1,
+    pagination: false,
+    sort: ['order', 'createdAt'],
+    where: published,
+  })
+  return docs
+}
+
 export async function getPosts() {
   cacheTag('posts', 'media')
   cacheLife('max')
@@ -243,11 +270,11 @@ export async function getPostSlugs() {
 
 // Every public URL with its last edit, for the sitemap.
 export async function getSitemapEntries() {
-  cacheTag('pages', 'portraits', 'posts', 'media')
+  cacheTag('pages', 'portraits', 'posts', 'testimonials', 'media')
   cacheLife('max')
   const p = await payload()
   const textPages = { or: [{ kind: { equals: 'text' } }, { kind: { exists: false } }] }
-  const [pages, system, portraits, posts] = await Promise.all([
+  const [pages, system, portraits, posts, voices] = await Promise.all([
     p.find({
       collection: 'pages',
       depth: 0,
@@ -260,7 +287,7 @@ export async function getSitemapEntries() {
       depth: 0,
       pagination: false,
       select: { slug: true, updatedAt: true },
-      where: { ...published, kind: { in: ['home', 'about', 'portraits', 'diary'] } },
+      where: { ...published, kind: { in: ['home', 'about', 'portraits', 'diary', 'say'] } },
     }),
     p.find({
       collection: 'portraits',
@@ -276,6 +303,7 @@ export async function getSitemapEntries() {
       select: { slug: true, updatedAt: true, cover: true },
       where: published,
     }),
+    p.count({ collection: 'testimonials', where: published }),
   ])
   const url = (m: unknown) =>
     m && typeof m === 'object' && 'url' in m ? ((m as { url?: string | null }).url ?? null) : null
@@ -284,5 +312,6 @@ export async function getSitemapEntries() {
     system: Object.fromEntries(system.docs.map((d) => [d.slug, d.updatedAt])),
     portraits: portraits.docs.map((d) => ({ ...d, imageUrl: url(d.image) })),
     posts: posts.docs.map((d) => ({ ...d, imageUrl: url(d.cover) })),
+    voices: voices.totalDocs,
   }
 }

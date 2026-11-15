@@ -61,6 +61,27 @@ export const PAGE_COPY = {
     themeVita: ['Topic: "Vita da fotografo"', 'Vita da fotografo'],
     themeMostre: ['Topic: "Mostre"', 'Mostre'],
     themeDietro: ['Topic: "Dietro il ritratto"', 'Dietro il ritratto'],
+    sponsor: [
+      'Label before the sponsor of an article',
+      'In collaborazione con',
+      'Shown at the end of the articles that have a sponsor.',
+    ],
+  },
+  say: {
+    kicker: ['Small line above the title', 'Chi è stato davanti all’obiettivo'],
+    questionLabel: ['Line above the question', 'La domanda'],
+    question: [
+      'The question everyone answers',
+      'Com’è stato farsi fotografare da Luke?',
+      'The same question for every answer on the page.',
+    ],
+    alt: [
+      'Fallback photo description',
+      'Foto di {name}',
+      'Used when a photo has no description of its own. {name} is the person’s name.',
+    ],
+    profiles: ['Screen reader label of the social links', 'Profili social'],
+    empty: ['Text when there are no answers', 'Le prime voci arrivano presto.'],
   },
   gate: {
     kicker: ['Small line above the title', 'Fuori fuoco'],
@@ -125,6 +146,10 @@ export const DEFAULT_SEO = {
       '{siteName} racconta storie intime con una semplicità disarmante. Come nasce un ritratto, mostre e contatti.',
   },
   diary: { description: 'Il diario di {siteName}: quello che succede prima e dopo lo scatto.' },
+  say: {
+    description:
+      'Cosa dicono di {siteName} le modelle e i modelli che ha ritratto: una domanda, tante risposte.',
+  },
 }
 
 /** Fills the placeholders of a template: fmt('{n} min', { n: 5 }) → "5 min". */
@@ -161,5 +186,12 @@ export const SYSTEM_PAGES = [
   { kind: 'about', slug: 'chi-e', title: 'Chi è', menuLabel: 'Chi è', menuOrder: 1 },
   { kind: 'portraits', slug: 'ritratti', title: 'Ritratti', menuLabel: 'Ritratti', menuOrder: 2 },
   { kind: 'diary', slug: 'diario', title: 'Diario', menuLabel: 'Diario', menuOrder: 3 },
+  {
+    kind: 'say',
+    slug: 'dicono-di-me',
+    title: 'Dicono di me',
+    menuLabel: 'Dicono di me',
+    menuOrder: 4,
+  },
   { kind: 'gate', slug: 'galleria-privata', title: 'Galleria privata' },
 ] as const
