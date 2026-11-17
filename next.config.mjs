@@ -63,6 +63,9 @@ const nextConfig = {
   // Change it when the Mac's address changes (`ipconfig getifaddr en0`/`en1`).
   allowedDevOrigins: ['192.168.1.170'],
   partialPrefetching: true,
+  experimental: {
+    agentUpgrade: 'security',
+  },
   async headers() {
     return [
       { source: '/:path*', headers: baseHeaders },
