@@ -67,7 +67,7 @@ test.describe('with a logged-in admin', () => {
     await expect(page.getByText('Created 2 draft portraits')).toBeVisible()
 
     const list = await (
-      await page.request.get('/api/portraits?draft=true&sort=order&limit=5', json)
+      await page.request.get('/api/portraits?draft=true&sort=_order&limit=5', json)
     ).json()
     expect(list.totalDocs).toBe(2)
     expect(list.docs.map((d: { _status: string }) => d._status)).toEqual(['draft', 'draft'])
@@ -82,7 +82,7 @@ test.describe('with a logged-in admin', () => {
 
   test('a published portrait shows up on the site, a draft does not', async ({ page, request }) => {
     const [first, second] = (
-      await (await page.request.get('/api/portraits?draft=true&sort=order&limit=5', json)).json()
+      await (await page.request.get('/api/portraits?draft=true&sort=_order&limit=5', json)).json()
     ).docs
     await created(
       await page.request.patch(`/api/portraits/${first.id}`, {
@@ -454,7 +454,7 @@ test.describe('with a logged-in admin', () => {
   test('a photo that is still in use cannot be deleted', async ({ page }) => {
     const [first] = (
       await (
-        await page.request.get('/api/portraits?draft=true&sort=order&limit=5&depth=0', json)
+        await page.request.get('/api/portraits?draft=true&sort=_order&limit=5&depth=0', json)
       ).json()
     ).docs
     const res = await page.request.delete(`/api/media/${first.image}`, json)
@@ -531,6 +531,68 @@ test.describe('with a logged-in admin', () => {
     const sitemap = await (await page.request.get('/sitemap.xml')).text()
     expect(sitemap).not.toContain('galleries')
     await visitor.context().close()
+  })
+
+  test('a series shows its description, and a portrait without a question speaks of its series', async ({
+    page,
+  }) => {
+    const media = (await (await page.request.get('/api/media?limit=1')).json()).docs[0]
+    const serie = await created(
+      await page.request.post('/api/projects', {
+        ...json,
+        data: {
+          title: 'Casa dolce casa',
+          year: 2026,
+          description: 'Un progetto sulle stanze di chi vive da solo.',
+          _status: 'published',
+        },
+      }),
+    )
+    const mk = async (extra: Record<string, unknown>) =>
+      (await (
+        await page.request.post('/api/portraits', {
+          ...json,
+          data: { image: media.id, _status: 'published', ...extra },
+        })
+      ).json()) as { doc: { id: number; slug: string } }
+    // One portrait of the series without a question, one with it, and a single one: the filters show.
+    const noQuestion = await mk({ series: serie.id })
+    const withQuestion = await mk({ series: serie.id, question: 'Che stanza sei?' })
+    const single = await mk({ question: 'Chi eri?' })
+
+    // New portraits go last, in the order they were created (position kept by the drag handle).
+    const ids = (
+      await (await page.request.get('/api/portraits?sort=_order&limit=100&depth=0', json)).json()
+    ).docs.map((d: { id: number }) => d.id)
+    expect(ids.indexOf(noQuestion.doc.id)).toBeLessThan(ids.indexOf(withQuestion.doc.id))
+    expect(ids.indexOf(withQuestion.doc.id)).toBeLessThan(ids.indexOf(single.doc.id))
+
+    // The description appears under the filters only when its series is chosen.
+    await page.goto('/ritratti')
+    await expect(page.locator('.series-note')).toHaveCount(0)
+    await page.getByRole('button', { name: /Casa dolce casa/ }).click()
+    await expect(page.locator('.series-note')).toContainText('2026')
+    await expect(page.locator('.series-note')).toContainText(
+      'Un progetto sulle stanze di chi vive da solo.',
+    )
+
+    // Without a question the page is titled by the series and shows its description;
+    // there is no empty "La domanda" label.
+    await page.goto(`/ritratti/${noQuestion.doc.slug}`)
+    await expect(page.getByRole('heading', { level: 1, name: 'Casa dolce casa' })).toBeVisible()
+    await expect(page.locator('.series-text')).toContainText(
+      'Un progetto sulle stanze di chi vive da solo.',
+    )
+    await expect(page.locator('.kicker')).not.toContainText('La domanda')
+    // With a question nothing changes.
+    await page.goto(`/ritratti/${withQuestion.doc.slug}`)
+    await expect(page.getByRole('heading', { level: 1, name: 'Che stanza sei?' })).toBeVisible()
+    await expect(page.locator('.series-text')).toHaveCount(0)
+    await expect(page.locator('.kicker')).toContainText('La domanda')
+
+    for (const d of [noQuestion, withQuestion, single])
+      await page.request.delete(`/api/portraits/${d.doc.id}`, json)
+    await page.request.delete(`/api/projects/${serie.id}`, json)
   })
 })
 

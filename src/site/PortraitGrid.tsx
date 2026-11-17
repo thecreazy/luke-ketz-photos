@@ -20,7 +20,7 @@ export type GridItem = {
 
 type Props = {
   items: GridItem[]
-  series: { id: number; title: string }[]
+  series: { id: number; title: string; description: string; year: number | null }[]
   copy: Copy['portraits']
 }
 type Key = 'all' | 'single' | number
@@ -42,6 +42,9 @@ export function PortraitGrid({ items, series, copy: it }: Props) {
     { key: 'single', label: it.single },
   ]
   const chips = all.filter((c) => c.key === 'all' || count(c.key) > 0)
+
+  // The note of the series being shown: its year and description, written in the admin.
+  const current = typeof filter === 'number' ? series.find((s) => s.id === filter) : undefined
 
   const list = items.filter((i) =>
     filter === 'all' ? true : filter === 'single' ? i.series === null : i.series === filter,
@@ -67,6 +70,13 @@ export function PortraitGrid({ items, series, copy: it }: Props) {
               <sup className="mono">{count(c.key)}</sup>
             </button>
           ))}
+        </div>
+      )}
+
+      {current && (current.description.trim() || current.year) && (
+        <div className="series-note" aria-live="polite">
+          {current.year ? <span className="mono">{current.year}</span> : null}
+          {current.description.trim() && <p>{current.description.trim()}</p>}
         </div>
       )}
 

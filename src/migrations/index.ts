@@ -6,6 +6,7 @@ import * as migration_20261105_102914_seo_fields from './20261105_102914_seo_fie
 import * as migration_20261105_112701_home_phone_copy from './20261105_112701_home_phone_copy';
 import * as migration_20261115_164107_dicono_di_me from './20261115_164107_dicono_di_me';
 import * as migration_20261115_184909_dicono_di_me_domanda from './20261115_184909_dicono_di_me_domanda';
+import * as migration_20261117_091023_portraits_orderable from './20261117_091023_portraits_orderable';
 
 export const migrations = [
   {
@@ -46,6 +47,11 @@ export const migrations = [
   {
     up: migration_20261115_184909_dicono_di_me_domanda.up,
     down: migration_20261115_184909_dicono_di_me_domanda.down,
-    name: '20261115_184909_dicono_di_me_domanda'
+    name: '20261115_184909_dicono_di_me_domanda',
+  },
+  {
+    up: migration_20261117_091023_portraits_orderable.up,
+    down: migration_20261117_091023_portraits_orderable.down,
+    name: '20261117_091023_portraits_orderable'
   },
 ];

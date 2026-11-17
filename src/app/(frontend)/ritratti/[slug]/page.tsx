@@ -51,9 +51,16 @@ async function PortraitView({ params }: Props) {
 
   const prev = all[(index + all.length - 1) % all.length].doc
   const next = all[(index + 1) % all.length].doc
-  const series = typeof doc.series === 'object' && doc.series ? doc.series.title : it.single
-  const meta = [doc.subject, series, doc.year].filter(Boolean).join(' · ')
+  const seriesDoc = typeof doc.series === 'object' && doc.series ? doc.series : null
   const num = String(n).padStart(2, '0')
+  const question = doc.question?.trim()
+  // Without a question the page speaks of the series: its name is the title, its description the text.
+  const heading = question || (seriesDoc ? seriesDoc.title : fmt(it.alt, { n: num }))
+  const seriesText = !question ? seriesDoc?.description?.trim() : undefined
+  const series = seriesDoc ? seriesDoc.title : it.single
+  const meta = [doc.subject, question || !seriesDoc ? series : null, doc.year]
+    .filter(Boolean)
+    .join(' · ')
   const others = all.filter((_, i) => i !== index).map((p) => p.doc.image)
 
   return (
@@ -113,9 +120,10 @@ async function PortraitView({ params }: Props) {
 
         <div className="portrait-text">
           <span className="kicker mono">
-            N° {num} · {copy.home.question}
+            N° {num}
+            {question ? ` · ${copy.home.question}` : null}
           </span>
-          {doc.question && <h1 className="serif question big">{doc.question}</h1>}
+          <h1 className="serif question big">{heading}</h1>
           <svg className="stroke" aria-hidden="true" viewBox="0 0 420 26">
             <path
               d="M4 18 C 80 6, 170 22, 250 12 S 380 8, 416 16"
@@ -124,6 +132,7 @@ async function PortraitView({ params }: Props) {
               strokeLinecap="round"
             />
           </svg>
+          {seriesText && <p className="series-text">{seriesText}</p>}
           {doc.note && <p className="serif note">{doc.note}</p>}
           {meta && <span className="mono meta">{meta}</span>}
         </div>

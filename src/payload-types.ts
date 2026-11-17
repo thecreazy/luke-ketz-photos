@@ -134,13 +134,14 @@ export interface UserAuthOperations {
   };
 }
 /**
- * Add many at once from "Upload photos" (Destination: Photos, then "Create portraits"). Each portrait is saved as a draft: write its question and publish it.
+ * Add many at once from "Upload photos" (Destination: Photos, then "Create portraits"). Each portrait is saved as a draft: publish it (the question is optional). To reorder, drag the rows by the handle on the left; filter by series to reorder only that series.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "portraits".
  */
 export interface Portrait {
   id: number;
+  _order?: string | null;
   image: number | Media;
   /**
    * The question this portrait answers, e.g. "Chi vedi, quando ti guardi?"
@@ -163,9 +164,6 @@ export interface Portrait {
    * Generated automatically
    */
   slug: string;
-  /**
-   * Lower = first. Sets the N° shown on the site.
-   */
   order?: number | null;
   /**
    * The home floats about 13 portraits; tick the ones to use (it needs a question).
@@ -868,6 +866,7 @@ export interface PayloadMigration {
  * via the `definition` "portraits_select".
  */
 export interface PortraitsSelect<T extends boolean = true> {
+  _order?: T;
   image?: T;
   question?: T;
   note?: T;

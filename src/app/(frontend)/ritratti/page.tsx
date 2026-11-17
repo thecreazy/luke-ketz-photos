@@ -64,7 +64,12 @@ export default async function Portraits() {
         ) : (
           <PortraitGrid
             items={items}
-            series={series.map((s) => ({ id: s.id, title: s.title }))}
+            series={series.map((s) => ({
+              id: s.id,
+              title: s.title,
+              description: s.description ?? '',
+              year: s.year ?? null,
+            }))}
             copy={it}
           />
         )}

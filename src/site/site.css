@@ -571,6 +571,38 @@ main:focus {
   color: var(--muted);
 }
 
+/* The year and description of the series being shown, under the filters. */
+.series-note {
+  display: grid;
+  gap: 6px;
+  max-width: 62ch;
+  margin: 18px 0 4px;
+}
+.series-note .mono {
+  font-size: 11px;
+  color: var(--accent);
+}
+.series-note p,
+.series-text {
+  margin: 0;
+  /* the site's label face, but in lower case so a longer text stays readable */
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-variation-settings: 'wdth' 75;
+  font-weight: 300;
+  font-size: 13px;
+  line-height: 1.75;
+  letter-spacing: 0.03em;
+  color: var(--sub);
+  white-space: pre-line;
+}
+.series-note p {
+  max-width: 64ch;
+}
+.series-text {
+  max-width: 48ch;
+  margin-top: 16px;
+}
+
 /* Portraits page */
 .page > main.wrap > h1.big {
   padding-top: 56px;

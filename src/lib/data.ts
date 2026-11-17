@@ -162,7 +162,7 @@ export async function getPortraits() {
     collection: 'portraits',
     depth: 1,
     pagination: false,
-    sort: ['order', 'createdAt'],
+    sort: ['_order', 'createdAt'],
     where: published,
   })
   return docs.map((doc, i) => ({ doc, n: i + 1 }))

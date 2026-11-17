@@ -18,14 +18,16 @@ export const Portraits: CollectionConfig = {
   slug: 'portraits',
   labels: { singular: 'Portrait', plural: 'Portraits' },
   versions: { drafts: true, maxPerDoc: 20 },
+  // Drag the rows in the list to reorder (Payload keeps the position in a hidden `_order` field).
+  orderable: true,
   access: { read: ({ req }) => (req.user ? true : { _status: { equals: 'published' } }) },
   admin: {
     useAsTitle: 'question',
     defaultColumns: ['image', 'question', 'series', 'featured', '_status'],
     description:
-      'Add many at once from "Upload photos" (Destination: Photos, then "Create portraits"). Each portrait is saved as a draft: write its question and publish it.',
+      'Add many at once from "Upload photos" (Destination: Photos, then "Create portraits"). Each portrait is saved as a draft: publish it (the question is optional). To reorder, drag the rows by the handle on the left; filter by series to reorder only that series.',
   },
-  defaultSort: 'order',
+  defaultSort: '_order',
   fields: [
     { name: 'image', type: 'upload', relationTo: 'media', required: true, label: 'Photo' },
     {
@@ -68,11 +70,12 @@ export const Portraits: CollectionConfig = {
       hooks: { beforeValidate: [fromQuestion] },
     },
     {
+      // Old numeric order, replaced by dragging the rows (`_order`). Kept only so the column stays.
       name: 'order',
       type: 'number',
       defaultValue: 0,
-      label: 'Order',
-      admin: { position: 'sidebar', description: 'Lower = first. Sets the N° shown on the site.' },
+      label: 'Order (not used)',
+      admin: { hidden: true },
     },
     {
       name: 'featured',
