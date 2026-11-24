@@ -12,6 +12,7 @@ import { mergeCopy } from '@/site/copy'
 import type { CopyKind } from '@/site/copy'
 
 import { payload } from './payload'
+import { coverOf } from './post-cover'
 
 const published = { _status: { equals: 'published' } } as const
 
@@ -233,10 +234,17 @@ export async function getPosts() {
       publishedAt: true,
       excerpt: true,
       cover: true,
+      // Only to find a picture when the article has no Main photo (see coverOf).
+      content: true,
+      sections: true,
+      timeline: true,
     },
     where: published,
   })
-  return docs
+  return docs.map(({ content, sections, timeline, ...d }) => ({
+    ...d,
+    cover: coverOf({ cover: d.cover, content, sections, timeline }) ?? null,
+  }))
 }
 
 export async function getPost(slug: string) {
@@ -250,7 +258,8 @@ export async function getPost(slug: string) {
     limit: 1,
     where: { ...published, slug: { equals: slug } },
   })
-  return docs[0] ?? null
+  const post = docs[0]
+  return post ? { ...post, cover: coverOf(post) ?? null } : null
 }
 
 export async function getPostSlugs() {

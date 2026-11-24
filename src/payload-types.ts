@@ -301,7 +301,7 @@ export interface Post {
    */
   excerpt?: string | null;
   /**
-   * Top of the page (layouts B and D), end of the page (A) and in the Diary list.
+   * Top of the page (layouts B and D), end of the page (A) and in the Diary list. If left empty, the first photo of the article is used.
    */
   cover?: (number | null) | Media;
   content?: {

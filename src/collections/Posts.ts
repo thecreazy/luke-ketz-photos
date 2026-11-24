@@ -1,5 +1,6 @@
-import type { CollectionConfig, Condition } from 'payload'
+import type { CollectionBeforeValidateHook, CollectionConfig, Condition } from 'payload'
 
+import { firstPhotoOf } from '@/lib/post-cover'
 import { seoField } from '@/lib/seo'
 import { revalidateOnChange } from '@/lib/revalidate'
 import { slugField } from '@/lib/slug'
@@ -21,6 +22,18 @@ const only =
   (...layouts: string[]): Condition =>
   (data) =>
     layouts.includes(data?.layout)
+
+const mediaId = (m: unknown) =>
+  m && typeof m === 'object'
+    ? (m as { id: number }).id
+    : ((m as number | null | undefined) ?? undefined)
+
+// No "Main photo": use the first photo of the article, so it is always shown in the admin too.
+const coverFromFirstPhoto: CollectionBeforeValidateHook = ({ data }) => {
+  if (!data || mediaId(data.cover)) return data
+  const first = mediaId(firstPhotoOf(data))
+  return first === undefined ? data : { ...data, cover: first }
+}
 
 // The Diary. The layout chosen for each article decides which fields below are shown.
 export const Posts: CollectionConfig = {
@@ -82,7 +95,7 @@ export const Posts: CollectionConfig = {
       label: 'Main photo',
       admin: {
         description:
-          'Top of the page (layouts B and D), end of the page (A) and in the Diary list.',
+          'Top of the page (layouts B and D), end of the page (A) and in the Diary list. If left empty, the first photo of the article is used.',
       },
     },
 
@@ -224,5 +237,5 @@ export const Posts: CollectionConfig = {
     },
     seoField,
   ],
-  hooks: revalidateOnChange('post', 'posts'),
+  hooks: { ...revalidateOnChange('post', 'posts'), beforeValidate: [coverFromFirstPhoto] },
 }
