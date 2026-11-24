@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { connection } from 'next/server'
 import config from '@payload-config'
 import { generatePageMetadata, RootPage } from '@payloadcms/next/views'
 
@@ -12,7 +13,11 @@ type Args = {
 export const generateMetadata = ({ params, searchParams }: Args): Promise<Metadata> =>
   generatePageMetadata({ config, params, searchParams })
 
-const Page = ({ params, searchParams }: Args) =>
-  RootPage({ config, params, searchParams, importMap })
+// The admin is never prerendered: Payload's own components read the clock while rendering, which
+// Cache Components flags as an error (seen in development). Waiting for the request avoids it.
+const Page = async ({ params, searchParams }: Args) => {
+  await connection()
+  return RootPage({ config, params, searchParams, importMap })
+}
 
 export default Page
