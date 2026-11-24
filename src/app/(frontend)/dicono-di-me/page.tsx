@@ -60,7 +60,7 @@ export default async function Say() {
                         <img
                           src={photo.src}
                           srcSet={photo.srcSet}
-                          sizes="(max-width: 760px) 100vw, 46vw"
+                          sizes="(max-width: 760px) 50vw, 23vw"
                           alt={photo.alt || fmt(it.alt, { name: v.name })}
                           width={photo.width}
                           height={photo.height}

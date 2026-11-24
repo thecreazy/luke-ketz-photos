@@ -1735,12 +1735,12 @@ main:focus {
 }
 .voice {
   display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  grid-template-columns: minmax(0, 2.5fr) minmax(0, 8.5fr);
   gap: clamp(28px, 6vw, 96px);
   align-items: center;
 }
 .voices > li:nth-child(even) .voice {
-  grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+  grid-template-columns: minmax(0, 8.5fr) minmax(0, 2.5fr);
 }
 .voices > li:nth-child(even) .voice-photo {
   order: 2;
@@ -1867,6 +1867,7 @@ main:focus {
   }
   .voice-photo {
     margin: 12px;
+    width: 50%;
   }
   .voice-text::before {
     margin-bottom: 20px;
